@@ -225,7 +225,7 @@ open_serial()
 	if (fd == -1)
 	{
 		printf("failure, could not open port.\n");
-		printf("QUACK\n");
+		printf("PORT IS: %s\n", uart_name);
 		throw EXIT_FAILURE;
 	}
 

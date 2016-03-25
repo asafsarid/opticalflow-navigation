@@ -1,2 +1,4 @@
-Dont forget the sudo!!!!
-In order to run: sudo bash runFeedback.sh 2
+In order to run:
+
+make all
+sudo ./opticalFlowfeedback

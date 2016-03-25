@@ -18,16 +18,27 @@ void *controller(void *control) {
 	Position* position = new Position();
 	Attitude* attitude = new Attitude();
 	// Get X,Y From Optical Flow
-	double y_mes = disty;
-	double x_mes = distx;
+	double y_mes;
+	double x_mes;
 	// Get Z From Sonar Sensor
-	double z_mes = distanceFromGround;
+	double z_mes;
 	// Get Euler Angles From IMU
-	double the_mes = eulerFromSensors.pitch;
-	double phi_mes = eulerFromSensors.roll;
-	double psi_mes = eulerFromSensors.yaw;
+	double the_mes;
+	double phi_mes;
+	double psi_mes;
 	double mc1,mc2,mc3,mc4;
+
 	for(;;){
+		// Get X,Y From Optical Flow
+		y_mes = disty;
+		x_mes = distx;
+		// Get Z From Sonar Sensor
+		z_mes = distanceFromGround;
+		// Get Euler Angles From IMU
+		the_mes = eulerFromSensors.pitch;
+		phi_mes = eulerFromSensors.roll;
+		psi_mes = eulerFromSensors.yaw;
+
 		//Position Controller
 		position->calculate(0, y_mes, 0, x_mes);
 		//Attitude Contoller
