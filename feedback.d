@@ -132,7 +132,7 @@ feedback.o: feedback.cpp sensors.h c_library/common/mavlink.h \
  c_library/common/./mavlink_msg_debug.h \
  c_library/common/../ardupilotmega/mavlink_msg_rangefinder.h \
  serial_port.h opticalFlow.h globals.h quadcopter.h att_control.h pid.h \
- pos_control.h
+ pos_control.h locationPlot.h
 
 sensors.h:
 
@@ -421,3 +421,5 @@ att_control.h:
 pid.h:
 
 pos_control.h:
+
+locationPlot.h:

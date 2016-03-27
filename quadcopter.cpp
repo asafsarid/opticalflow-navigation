@@ -50,10 +50,10 @@ void *controller(void *control) {
 		mc3 = attitude->z_correct - attitude->psi_correct + attitude->the_correct;
 		mc4 = attitude->z_correct + attitude->psi_correct - attitude->phi_correct;
 
-		cout << "Motor 1 = " << mc1 << endl;
-		cout << "Motor 2 = " << mc2 << endl;
-		cout << "Motor 3 = " << mc3 << endl;
-		cout << "Motor 4 = " << mc4 << endl;
+//		cout << "Motor 1 = " << mc1 << endl;
+//		cout << "Motor 2 = " << mc2 << endl;
+//		cout << "Motor 3 = " << mc3 << endl;
+//		cout << "Motor 4 = " << mc4 << endl;
 		sleep(1);
 	}
 	return 0;

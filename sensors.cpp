@@ -94,7 +94,6 @@ void *updateEulerAngles(void *sensorsPort)
 	mavlink_rangefinder_t rangeMsg;
 	// 4. declare aux variables
 	int msgidFlagATT, msgidFlagRANGE;
-	active=1;
 //	active = 0;
 	// 5. loop runs until we lower the active flag
 	while(active)

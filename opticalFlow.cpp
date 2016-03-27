@@ -47,7 +47,7 @@ int outOfROI(int x, int y, vector<Point2f> corners)
 }
 
 /* this function draws the flow on the screen and accumulates the distance the UAV traveled */
-void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step,
+void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
                     double, const Scalar& color, double fps, vector<Point2f> corners)
 {
 	// the distance each pixel traveled per two frames
@@ -84,6 +84,10 @@ int opticalFlow(int source, char* capturePath){
 	double fps = cap.get(CV_CAP_PROP_FPS);
 	//double numOfFrames = cap.get(CV_CAP_PROP_FRAME_COUNT);
 
+	// Set Resolution - The Default Resolution Is 640 x 480
+	cap.set(CV_CAP_PROP_FRAME_WIDTH,320);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT,240);
+
 	/*  set calibration parameters and variables for storing the current location */
 	/******************************************************************************/
 	Mat flow, cflow, undistortFrame, processedFrame, origFrame, croppedFrame;
@@ -103,7 +107,7 @@ int opticalFlow(int source, char* capturePath){
 	UMat gray, prevgray, uflow;
 
 
-	namedWindow("flow", WINDOW_NORMAL);
+	namedWindow("flow", WINDOW_AUTOSIZE);
 
 	double location[2];
 	int frame_counter = 0;
@@ -132,15 +136,20 @@ int opticalFlow(int source, char* capturePath){
 		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
 		warpImage(undistortFrame, eulerFromSensors.yaw*(180/3.14), eulerFromSensors.pitch*(180/3.14), eulerFromSensors.roll*(180/3.14), 1, 30, processedFrame, warp, corners);
+
 		// lower the process effort by transforming the picture to gray
 		cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
 
 		if( !prevgray.empty() )
 		{
-			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 15/* def 15*/, 3, 5, 1.2 /* def 1.2*/, 0);
-			cvtColor(prevgray, cflow, COLOR_GRAY2BGR);
+//			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 15/* def 15*/, 3, 5, 1.2 /* def 1.2*/, 0);
+			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
+//			cvtColor(prevgray, cflow, COLOR_GRAY2BGR);
 			uflow.copyTo(flow);
-			drawOptFlowMap(flow, cflow, 16, 1.5, Scalar(0, 255, 0), fps, corners);
+
+//			drawOptFlowMap(flow, cflow, 16, 1.5, Scalar(0, 255, 0), fps, corners);
+			drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), fps, corners);
+
 			location[0] += (distx/640)*rovX;
 			location[1] += (disty/480)*rovY;
 			frame_counter++;
@@ -150,9 +159,9 @@ int opticalFlow(int source, char* capturePath){
 					"X: %.3f, Y: %.3f.  Euler: %.3f, %.3f, %.3f. dist: %.3f", frame_counter, location[0], location[1],
 					eulerFromSensors.pitch*(180/3.14), eulerFromSensors.roll*(180/3.14), eulerFromSensors.yaw*(180/3.14), distanceFromGround 		);
 
-			putText(cflow, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),1,1); //OutImg is Mat class;
+			putText(prevgray, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),1,1); //OutImg is Mat class;
 
-			imshow("flow", cflow);
+			imshow("flow", prevgray);
 		}
 
 		if(waitKey(1)>=0)

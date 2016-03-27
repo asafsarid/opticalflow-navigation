@@ -19,6 +19,7 @@
 #include "opticalFlow.h"
 #include "globals.h"
 #include "quadcopter.h"
+#include "locationPlot.h"
 
 
 /* Namespaces */
@@ -28,6 +29,8 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+	active=1;
+
 	// open sensors port
 	Serial_Port* p_sensorsPort = open_port();
 
@@ -35,12 +38,16 @@ int main(int argc, char** argv)
 	pthread_t euler_thread;
 	pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
 
+	// create and run thread for plot
+//	pthread_t plot_thread;
+//	pthread_create(&plot_thread, NULL, plotLocation, NULL);
+
 	// create and run thread for flight controller
 	pthread_t controller_thread;
 	pthread_create(&controller_thread, NULL, controller, NULL);
 
 	// delay - waiting for angles and global variables to be stable
-	sleep(15);
+	sleep(5);
 
 	// calculate location
 	opticalFlow(1, NULL);
