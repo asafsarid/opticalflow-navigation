@@ -1,0 +1,4 @@
+1. If you have problem with new branch push use:
+	git config remote.origin.url "https://{username}:{password}@github.com/{username}/project.git"
+
+2.
