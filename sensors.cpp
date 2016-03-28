@@ -85,9 +85,9 @@ void *updateEulerAngles(void *sensorsPort)
 	// 1. cast the input pointer to the desired format
 	Serial_Port *p_sensorsPort = (Serial_Port *)sensorsPort;
 	// 2. open file to print the angles
-    FILE * euler_FD = fopen ("./outputs/eulerAngles.txt","a");
-    fprintf(euler_FD, "x is %d",0);
-    fclose(euler_FD);
+//    FILE * euler_FD = fopen ("./outputs/eulerAngles.txt","a");
+//    fprintf(euler_FD, "x is %d",0);
+//    fclose(euler_FD);
     // 3. declare mavlink structs
 	mavlink_message_t newMsg;
 	mavlink_attitude_t attitudeMsg;

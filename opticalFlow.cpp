@@ -106,7 +106,6 @@ int opticalFlow(int source, char* capturePath){
 
 	UMat gray, prevgray, uflow;
 
-
 	namedWindow("flow", WINDOW_AUTOSIZE);
 
 	double location[2];
@@ -116,9 +115,10 @@ int opticalFlow(int source, char* capturePath){
 	double dist=87; 		// distance from surface in cm
 	rovX = 2*0.4*dist; 		// 2 * tan(43.6/2) * dist
 	rovY = 2*0.3*dist;		// 2 * tan(33.7/2) * dist
+
 	/*  open files for output data											***/
 	/******************************************************************************/
-	//FILE * pFile2Location = fopen ("./outputs/location.txt","w");
+	FILE * pLocationFile = fopen ("./outputs/location.txt","w");
 
 	/*  compare every two frames												***/
 	/******************************************************************************/
@@ -152,7 +152,10 @@ int opticalFlow(int source, char* capturePath){
 
 			location[0] += (distx/640)*rovX;
 			location[1] += (disty/480)*rovY;
+
 			frame_counter++;
+
+			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 
 			char TestStr[500];
 			sprintf(TestStr,"Frame: %d    Location:   "
@@ -169,8 +172,11 @@ int opticalFlow(int source, char* capturePath){
 		std::swap(prevgray, gray);
 	}
 
+	destroyWindow("flow");
+
+
 	// close the files
-	//fclose(pFile2Location);
+	fclose(pLocationFile);
 
 	return 0;
 }

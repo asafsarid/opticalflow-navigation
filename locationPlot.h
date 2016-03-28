@@ -8,7 +8,7 @@
 #ifndef FEEDBACK_LOCATIONPLOT_H_
 #define FEEDBACK_LOCATIONPLOT_H_
 
-void* plotLocation(void *info);
+void plotLocation(void *info);
 
 
 

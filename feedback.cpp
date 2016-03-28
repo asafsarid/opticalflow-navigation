@@ -38,19 +38,18 @@ int main(int argc, char** argv)
 	pthread_t euler_thread;
 	pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
 
-	// create and run thread for plot
-//	pthread_t plot_thread;
-//	pthread_create(&plot_thread, NULL, plotLocation, NULL);
-
 	// create and run thread for flight controller
 	pthread_t controller_thread;
 	pthread_create(&controller_thread, NULL, controller, NULL);
 
 	// delay - waiting for angles and global variables to be stable
-	sleep(5);
+	sleep(10);
 
 	// calculate location
 	opticalFlow(1, NULL);
+
+	// output plot
+	plotLocation(NULL);
 
 	// close sensors port
 	close_port(p_sensorsPort);
