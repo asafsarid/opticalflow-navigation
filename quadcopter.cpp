@@ -54,7 +54,7 @@ void *controller(void *control) {
 //		cout << "Motor 2 = " << mc2 << endl;
 //		cout << "Motor 3 = " << mc3 << endl;
 //		cout << "Motor 4 = " << mc4 << endl;
-		sleep(1);
+		usleep(500000);
 	}
 	return 0;
 }

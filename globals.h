@@ -7,6 +7,10 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#define WIDTH_RES 320
+#define HEIGHT_RES 240
+#define PI 3.14159265
+
 /* Structs Declaration */
 typedef struct {
 	float roll; /*< Roll angle (rad, -pi..+pi)*/

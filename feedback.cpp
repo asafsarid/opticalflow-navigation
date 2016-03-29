@@ -38,12 +38,12 @@ int main(int argc, char** argv)
 	pthread_t euler_thread;
 	pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
 
-	// create and run thread for flight controller
-	pthread_t controller_thread;
-	pthread_create(&controller_thread, NULL, controller, NULL);
-
 	// delay - waiting for angles and global variables to be stable
 	sleep(10);
+
+	// create and run thread for flight controller
+//	pthread_t controller_thread;
+//	pthread_create(&controller_thread, NULL, controller, NULL);
 
 	// calculate location
 	opticalFlow(1, NULL);

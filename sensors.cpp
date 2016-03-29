@@ -66,7 +66,7 @@ Serial_Port* open_port(/*char *path*/)
 	mavlink_message_t initMsg;
 	p_sensorsPort->read_message(initMsg);
 
-	// 5. return the port
+	// 4. return the port
 	return p_sensorsPort;
 }
 
@@ -92,42 +92,29 @@ void *updateEulerAngles(void *sensorsPort)
 	mavlink_message_t newMsg;
 	mavlink_attitude_t attitudeMsg;
 	mavlink_rangefinder_t rangeMsg;
-	// 4. declare aux variables
-	int msgidFlagATT, msgidFlagRANGE;
-//	active = 0;
-	// 5. loop runs until we lower the active flag
+	// 4. loop runs until we lower the active flag
 	while(active)
 	{
-		// 5.1.set the message ID flag- as long as the interrupt is not attitude- keep reading
-		msgidFlagATT = 0;
-		msgidFlagRANGE = 0;
-		while(msgidFlagRANGE == 0 || msgidFlagATT == 0)
-		{
-			// 5.1.1. read from device
+			// 4.1.1. read from device
 			p_sensorsPort->read_message(newMsg);
-			// 5.1.2. handle only attitude data
+			// 4.1.2. handle only attitude data
 			switch (newMsg.msgid) {
-			// 5.1.2.1. Euler angles
+			// 4.1.2.1. Euler angles
 			case MAVLINK_MSG_ID_ATTITUDE:
 				mavlink_msg_attitude_decode(&newMsg, &attitudeMsg);
-				msgidFlagATT = 1;
+				eulerFromSensors.pitch 	= attitudeMsg.pitch;
+				eulerFromSensors.roll 	= attitudeMsg.roll;
+				eulerFromSensors.yaw 	= attitudeMsg.yaw;
 				break;
-			// 5.1.2.2 Read Distance
+			// 4.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
-				msgidFlagRANGE = 1;
+				distanceFromGround		= rangeMsg.distance;
+				break;
+			// 4.1.2.3 Default Case
+			default:
 				break;
 			}
-		}
-		// 5.2. update the global variable
-		eulerFromSensors.pitch 	= attitudeMsg.pitch;
-		eulerFromSensors.roll 	= attitudeMsg.roll;
-		eulerFromSensors.yaw 	= attitudeMsg.yaw;
-		distanceFromGround		= rangeMsg.distance;
-//		eulerFromSensors.pitch 	= 0;
-//		eulerFromSensors.roll 	= 0;
-//		eulerFromSensors.yaw 	= 0;
-//		distanceFromGround		= 0;
 	}
 	return NULL;
 }

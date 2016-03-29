@@ -85,8 +85,8 @@ int opticalFlow(int source, char* capturePath){
 	//double numOfFrames = cap.get(CV_CAP_PROP_FRAME_COUNT);
 
 	// Set Resolution - The Default Resolution Is 640 x 480
-	cap.set(CV_CAP_PROP_FRAME_WIDTH,320);
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT,240);
+	cap.set(CV_CAP_PROP_FRAME_WIDTH,WIDTH_RES);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT,HEIGHT_RES);
 
 	/*  set calibration parameters and variables for storing the current location */
 	/******************************************************************************/
@@ -112,9 +112,15 @@ int opticalFlow(int source, char* capturePath){
 	int frame_counter = 0;
 	int i;
 	double rovX, rovY;		// range of view in both axis
+#ifdef SONAR_ACTIVE
+	rovX = 2*0.4*distanceFromGround; 		// 2 * tan(43.6/2) * dist
+	rovY = 2*0.3*distanceFromGround;		// 2 * tan(33.7/2) * dist
+#else
 	double dist=87; 		// distance from surface in cm
 	rovX = 2*0.4*dist; 		// 2 * tan(43.6/2) * dist
 	rovY = 2*0.3*dist;		// 2 * tan(33.7/2) * dist
+#endif
+
 
 	/*  open files for output data											***/
 	/******************************************************************************/
@@ -135,7 +141,7 @@ int opticalFlow(int source, char* capturePath){
 		// undistort the frame using the calibration parameters
 		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
-		warpImage(undistortFrame, eulerFromSensors.yaw*(180/3.14), eulerFromSensors.pitch*(180/3.14), eulerFromSensors.roll*(180/3.14), 1, 30, processedFrame, warp, corners);
+		warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), 1, 30, processedFrame, warp, corners);
 
 		// lower the process effort by transforming the picture to gray
 		cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
@@ -150,19 +156,21 @@ int opticalFlow(int source, char* capturePath){
 //			drawOptFlowMap(flow, cflow, 16, 1.5, Scalar(0, 255, 0), fps, corners);
 			drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), fps, corners);
 
-			location[0] += (distx/640)*rovX;
-			location[1] += (disty/480)*rovY;
+			location[0] += (distx/WIDTH_RES)*rovX;
+			location[1] += (disty/HEIGHT_RES)*rovY;
 
 			frame_counter++;
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 
-			char TestStr[500];
+			char TestStr[500], TestStr2[500];
 			sprintf(TestStr,"Frame: %d    Location:   "
-					"X: %.3f, Y: %.3f.  Euler: %.3f, %.3f, %.3f. dist: %.3f", frame_counter, location[0], location[1],
-					eulerFromSensors.pitch*(180/3.14), eulerFromSensors.roll*(180/3.14), eulerFromSensors.yaw*(180/3.14), distanceFromGround 		);
+					"X: %.3f, Y: %.3f.  ", frame_counter, location[0], location[1]);
+			sprintf(TestStr2,"Euler: %.3f, %.3f, %.3f. dist: %.3f",
+								eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI), distanceFromGround);
 
-			putText(prevgray, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),1,1); //OutImg is Mat class;
+			putText(prevgray, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
+			putText(prevgray, TestStr2, Point(10,50), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
 
 			imshow("flow", prevgray);
 		}
