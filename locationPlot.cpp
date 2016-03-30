@@ -126,7 +126,8 @@ void anglesPlot(void *info)
 
 	// show plot
 	imshow("Angles", myplot);
-	imwrite("./outputs/Angles.jpg", myplot);
+	string anglesPlotPicName = "./outputs/" + currentTime + "anglesPlot.jpg";
+	imwrite(anglesPlotPicName, myplot);
 	cvWaitKey(0);
 	destroyWindow("Angles");
 }

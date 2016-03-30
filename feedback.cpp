@@ -26,10 +26,27 @@
 using namespace cv;
 using namespace std;
 
+/* this function replace all spaces with underscores in string */
+string space2underscore(string text)
+{
+    for(uint i = 0; i < text.length(); i++)
+    {
+           if( isspace(text[i]) )
+                text[i] = '_';
+    }
+    return text;
+}
 
 int main(int argc, char** argv)
 {
 	active=1;
+
+	// current date/time based on current system
+	time_t now = time(0);
+	// convert now to string form
+	char* dt = ctime(&now);
+	string tempTime = (string)dt;
+	currentTime = space2underscore(tempTime);
 
 	// open sensors port
 	Serial_Port* p_sensorsPort = open_port();

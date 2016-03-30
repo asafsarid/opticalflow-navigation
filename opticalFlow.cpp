@@ -24,7 +24,7 @@ using namespace std;
 // distance frame have traveled
 double distx;
 double disty;
-
+string currentTime;
 
 /*************************************** Auxiliary functions ******************************/
 
@@ -131,8 +131,13 @@ int opticalFlow(int source, char* capturePath){
 
 	/*  open files for output data											***/
 	/******************************************************************************/
-	FILE * pLocationFile = fopen ("./outputs/location.txt","w");
-	FILE * pAnglesFile	 = fopen ("./outputs/angles.txt","w");
+
+	cout << "The local date and time is: " << currentTime << endl;
+	string locationFileName = "./outputs/" + currentTime + "location.txt";
+	string anglesFileName = "./outputs/" + currentTime + "angles.txt";
+
+	FILE * pLocationFile = fopen (locationFileName.c_str(), "w");
+	FILE * pAnglesFile	 = fopen (anglesFileName.c_str(), "w");
 
 	/*  compare every two frames												***/
 	/******************************************************************************/
@@ -179,7 +184,6 @@ int opticalFlow(int source, char* capturePath){
 
 			imshow("Location", locationPlot);
 
-
 			// temporary diable camera window!!!
 //			char TestStr[500], TestStr2[500];
 //			sprintf(TestStr,"Frame: %d    Location:   "
@@ -200,6 +204,8 @@ int opticalFlow(int source, char* capturePath){
 	}
 
 	//destroyWindow("flow");
+	string locationPlotPicName = "./outputs/" + currentTime + "locationPlot.jpg";
+	imwrite(locationPlotPicName, locationPlot);
 	destroyWindow("Location");
 
 
