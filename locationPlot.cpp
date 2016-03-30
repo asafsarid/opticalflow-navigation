@@ -97,7 +97,7 @@ void anglesPlot(void *info)
 	namedWindow("Angles", WINDOW_AUTOSIZE);
 
 	// declare matrix and size variables
-	Mat myplot = imread("anglesBack.jpeg");
+	Mat myplot = imread("anglesBack.png");
 	int pitchCols 	= 28;
 	int pitchRows 	= 310;
 	int rollCols 	= 28;
@@ -113,13 +113,13 @@ void anglesPlot(void *info)
 		vector<float>::iterator it2 = (*it).begin();
 		// draw angles
 		float tempPitch = *it2;
-		circle(myplot, Point(pitchCols + counter, pitchRows + tempPitch/2), 2, Scalar(0, 255, 0), -1);
+		circle(myplot, Point(pitchCols + counter, pitchRows - tempPitch/2), 2, Scalar(0, 255, 0), -1);
 		++it2;
 		float tempRoll 	= *it2;
-		circle(myplot, Point(rollCols + counter, rollRows + tempRoll/2), 2, Scalar(0, 255, 0), -1);
+		circle(myplot, Point(rollCols + counter, rollRows - tempRoll/2), 2, Scalar(255, 0, 0), -1);
 		++it2;
 		float tempYaw	= *it2;
-		circle(myplot, Point(yawCols + counter, yawRows + tempYaw/2), 2, Scalar(0, 255, 0), -1);
+		circle(myplot, Point(yawCols + counter, yawRows - abs(tempYaw)/2), 2, Scalar(0, 0, 255), -1);
 
 		counter++;
 	}

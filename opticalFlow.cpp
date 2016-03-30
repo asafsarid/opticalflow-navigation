@@ -77,7 +77,7 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
 int opticalFlow(int source, char* capturePath){
    cout << "Capture from: " << endl << source << endl;
 
-   VideoCapture cap(1); // capture from camera 1
+   VideoCapture cap(0); // capture from camera 1
 
 	if( !cap.isOpened() )
 		return -1;
@@ -106,11 +106,11 @@ int opticalFlow(int source, char* capturePath){
 
 	UMat gray, prevgray, uflow;
 
-	namedWindow("flow", WINDOW_AUTOSIZE);
+	//namedWindow("flow", WINDOW_AUTOSIZE);
 
 	// add window for location plot
 	namedWindow("Location", WINDOW_AUTOSIZE);
-	Mat locationPlot = imread("blackBackGraph.jpeg");
+	Mat locationPlot = imread("locationBack.jpeg");
 	int locationCols = locationPlot.cols/2;
 	int locationRows = locationPlot.rows/2;
 
@@ -170,8 +170,8 @@ int opticalFlow(int source, char* capturePath){
 			frame_counter++;
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
-			fprintf(pLocationFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
-			circle(locationPlot, Point(locationCols + location[0]*10, locationRows + location[1]*10), 2, Scalar(0, 255, 0), -1);
+			fprintf(pAnglesFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
+			circle(locationPlot, Point(locationCols + location[0]*5, locationRows + location[1]*5), 2, Scalar(0, 0, 255), -1);
 			imshow("Location", locationPlot);
 
 
@@ -194,7 +194,8 @@ int opticalFlow(int source, char* capturePath){
 		std::swap(prevgray, gray);
 	}
 
-	destroyWindow("flow");
+	//destroyWindow("flow");
+	destroyWindow("Location");
 
 
 	// close the files
