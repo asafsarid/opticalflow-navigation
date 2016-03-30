@@ -16,6 +16,7 @@
 #include "opencv2/highgui/highgui.hpp"
 // Our files
 #include "locationPlot.h"
+#include "globals.h"
 
 /* Namespaces */
 using namespace cv;
@@ -23,7 +24,8 @@ using namespace std;
 
 void locationPlot(void *info)
 {
-	fstream in("./outputs/location.txt");
+	string locationPlotTextName = "./outputs/" + currentTime + "location.txt";
+	fstream in(locationPlotTextName.c_str());
 	string line;
 	vector<vector<float> > coords;
 	int i = 0;
@@ -74,7 +76,8 @@ void locationPlot(void *info)
 // plot the angles of the uav during the flight
 void anglesPlot(void *info)
 {
-	fstream in("./outputs/angles.txt");
+	string anglesPlotTextName = "./outputs/" + currentTime + "angles.txt";
+	fstream in(anglesPlotTextName.c_str());
 	string line;
 	vector<vector<float> > coords;
 	int i = 0;

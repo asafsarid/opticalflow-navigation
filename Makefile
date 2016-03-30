@@ -24,4 +24,3 @@ feedback.o: feedback.cpp sensors.h sensors.o
 clean:
 	rm -rf *.o
 	rm -f ./feedback
-	rm -f ./outputs/*
