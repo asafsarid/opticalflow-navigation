@@ -49,7 +49,10 @@ int main(int argc, char** argv)
 	opticalFlow(1, NULL);
 
 	// output plot
-	plotLocation(NULL);
+	//locationPlot(NULL);
+
+	// plot angles
+	anglesPlot(NULL);
 
 	// close sensors port
 	close_port(p_sensorsPort);

@@ -21,7 +21,7 @@
 using namespace cv;
 using namespace std;
 
-void plotLocation(void *info)
+void locationPlot(void *info)
 {
 	fstream in("./outputs/location.txt");
 	string line;
@@ -71,4 +71,62 @@ void plotLocation(void *info)
 	destroyWindow("Location");
 }
 
+// plot the angles of the uav during the flight
+void anglesPlot(void *info)
+{
+	fstream in("./outputs/angles.txt");
+	string line;
+	vector<vector<float> > coords;
+	int i = 0;
+	while (getline(in, line))
+	{
+		float value;
+		stringstream ss(line);
 
+		coords.push_back(vector<float>());
+
+		while (ss >> value)
+		{
+			coords[i].push_back(value);
+		}
+		++i;
+	}
+	in.close();
+
+	// create window
+	namedWindow("Angles", WINDOW_AUTOSIZE);
+
+	// declare matrix and size variables
+	Mat myplot = imread("anglesBack.jpeg");
+	int pitchCols 	= 28;
+	int pitchRows 	= 310;
+	int rollCols 	= 28;
+	int rollRows 	= 107;
+	int yawCols 	= 28;
+	int yawRows 	= 604;
+	int counter		= 0;
+
+	// read location and plot it
+	for(vector<vector<float> >::iterator it = coords.begin(); it != coords.end(); ++it)
+	{
+
+		vector<float>::iterator it2 = (*it).begin();
+		// draw angles
+		float tempPitch = *it2;
+		circle(myplot, Point(pitchCols + counter, pitchRows + tempPitch/2), 2, Scalar(0, 255, 0), -1);
+		++it2;
+		float tempRoll 	= *it2;
+		circle(myplot, Point(rollCols + counter, rollRows + tempRoll/2), 2, Scalar(0, 255, 0), -1);
+		++it2;
+		float tempYaw	= *it2;
+		circle(myplot, Point(yawCols + counter, yawRows + tempYaw/2), 2, Scalar(0, 255, 0), -1);
+
+		counter++;
+	}
+
+	// show plot
+	imshow("Angles", myplot);
+
+	cvWaitKey(0);
+	destroyWindow("Angles");
+}

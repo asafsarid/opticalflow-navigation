@@ -77,7 +77,7 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
 int opticalFlow(int source, char* capturePath){
    cout << "Capture from: " << endl << source << endl;
 
-   VideoCapture cap(0); // capture from camera 1
+   VideoCapture cap(1); // capture from camera 1
 
 	if( !cap.isOpened() )
 		return -1;
@@ -108,6 +108,13 @@ int opticalFlow(int source, char* capturePath){
 
 	namedWindow("flow", WINDOW_AUTOSIZE);
 
+	// add window for location plot
+	namedWindow("Location", WINDOW_AUTOSIZE);
+	Mat locationPlot = imread("blackBackGraph.jpeg");
+	int locationCols = locationPlot.cols/2;
+	int locationRows = locationPlot.rows/2;
+
+
 	double location[2];
 	int frame_counter = 0;
 	int i;
@@ -125,6 +132,7 @@ int opticalFlow(int source, char* capturePath){
 	/*  open files for output data											***/
 	/******************************************************************************/
 	FILE * pLocationFile = fopen ("./outputs/location.txt","w");
+	FILE * pAnglesFile	 = fopen ("./outputs/angles.txt","w");
 
 	/*  compare every two frames												***/
 	/******************************************************************************/
@@ -162,17 +170,23 @@ int opticalFlow(int source, char* capturePath){
 			frame_counter++;
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
+			fprintf(pLocationFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
+			circle(locationPlot, Point(locationCols + location[0]*10, locationRows + location[1]*10), 2, Scalar(0, 255, 0), -1);
+			imshow("Location", locationPlot);
 
-			char TestStr[500], TestStr2[500];
-			sprintf(TestStr,"Frame: %d    Location:   "
-					"X: %.3f, Y: %.3f.  ", frame_counter, location[0], location[1]);
-			sprintf(TestStr2,"Euler: %.3f, %.3f, %.3f. dist: %.3f",
-								eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI), distanceFromGround);
 
-			putText(prevgray, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
-			putText(prevgray, TestStr2, Point(10,50), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
+			// temporary diable camera window!!!
+//			char TestStr[500], TestStr2[500];
+//			sprintf(TestStr,"Frame: %d    Location:   "
+//					"X: %.3f, Y: %.3f.  ", frame_counter, location[0], location[1]);
+//			sprintf(TestStr2,"Euler: %.3f, %.3f, %.3f. dist: %.3f",
+//								eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI), distanceFromGround);
+//
+//			putText(prevgray, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
+//			putText(prevgray, TestStr2, Point(10,50), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
+//
+//			imshow("flow", prevgray);
 
-			imshow("flow", prevgray);
 		}
 
 		if(waitKey(1)>=0)
@@ -185,6 +199,7 @@ int opticalFlow(int source, char* capturePath){
 
 	// close the files
 	fclose(pLocationFile);
+	fclose(pAnglesFile);
 
 	return 0;
 }
