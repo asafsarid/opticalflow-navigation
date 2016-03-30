@@ -171,7 +171,12 @@ int opticalFlow(int source, char* capturePath){
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 			fprintf(pAnglesFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
-			circle(locationPlot, Point(locationCols + location[0]*5, locationRows + location[1]*5), 2, Scalar(0, 0, 255), -1);
+			circle(locationPlot, Point(locationCols + location[0], locationRows + location[1]), 2, Scalar(0, 0, 255), -1);
+
+			char TestStr2[500];
+			cout << "Yaw: " << eulerFromSensors.yaw*(180/PI) << endl;
+
+
 			imshow("Location", locationPlot);
 
 

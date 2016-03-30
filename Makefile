@@ -1,7 +1,7 @@
-all: opticalFlowfeedback
+all: feedback
 
-opticalFlowfeedback: feedback.o 
-	g++ -L/usr/local/lib -o "opticalFlowfeedback" ./feedback.o ./sensors.o ./serial_port.o ./opticalFlow.o ./quadcopter.o ./att_control.o ./pos_control.o ./pid.o ./locationPlot.o -lopencv_core -lopencv_stitching -lopencv_superres -lopencv_videostab -lopencv_videoio -lopencv_imgcodecs -lopencv_photo -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_shape -lopencv_features2d  -lopencv_objdetect -lopencv_calib3d -lopencv_contrib -lopencv_legacy -lopencv_flann -lpthread
+feedback: feedback.o 
+	g++ -L/usr/local/lib -o "feedback" ./feedback.o ./sensors.o ./serial_port.o ./opticalFlow.o ./quadcopter.o ./att_control.o ./pos_control.o ./pid.o ./locationPlot.o -lopencv_core -lopencv_stitching -lopencv_superres -lopencv_videostab -lopencv_videoio -lopencv_imgcodecs -lopencv_photo -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_shape -lopencv_features2d  -lopencv_objdetect -lopencv_calib3d -lopencv_contrib -lopencv_legacy -lopencv_flann -lpthread
 
 locationPlot.o: locationPlot.cpp locationPlot.h
 	g++ -c locationPlot.cpp
@@ -23,5 +23,5 @@ feedback.o: feedback.cpp sensors.h sensors.o
 
 clean:
 	rm -rf *.o
-	rm -f opticalFlowfeedback
+	rm -f ./feedback
 	rm -f ./outputs/*

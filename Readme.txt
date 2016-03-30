@@ -1,14 +1,6 @@
 In order to run:
 
 make all
-sudo ./opticalFlowfeedback
+sudo ./feedback
 
-TODO:
-1. Add sonar distance to the optical flow calculation
-	1.1 Filtered.
-	1.2 MakeFile Defines
-2. Kalman Filter (Sonar?, Euler?, OpticalFlow? .....)
-3. Experiments
-4. QCustomPlot Real-Time Option
-5. Odroid-U3
-6. World Coordinates (GPS Integration)
+NOTE: APM should be stable when starting program!

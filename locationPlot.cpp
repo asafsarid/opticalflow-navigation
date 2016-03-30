@@ -94,7 +94,7 @@ void anglesPlot(void *info)
 	in.close();
 
 	// create window
-	namedWindow("Angles", WINDOW_AUTOSIZE);
+	namedWindow("Angles", WINDOW_NORMAL);
 
 	// declare matrix and size variables
 	Mat myplot = imread("anglesBack.png");
@@ -126,7 +126,7 @@ void anglesPlot(void *info)
 
 	// show plot
 	imshow("Angles", myplot);
-
+	imwrite("./outputs/Angles.jpg", myplot);
 	cvWaitKey(0);
 	destroyWindow("Angles");
 }
