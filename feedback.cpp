@@ -20,7 +20,8 @@
 #include "globals.h"
 #include "quadcopter.h"
 #include "locationPlot.h"
-
+//#include "mainwindow.h"
+#include <QApplication>
 
 /* Namespaces */
 using namespace cv;
@@ -39,42 +40,51 @@ string space2underscore(string text)
 
 int main(int argc, char** argv)
 {
-	active=1;
 
-	// current date/time based on current system
-	time_t now = time(0);
-	// convert now to string form
-	char* dt = ctime(&now);
-	string tempTime = (string)dt;
-	currentTime = space2underscore(tempTime);
+    QApplication a(argc, argv);
+    MainWindow w;
 
-	// open sensors port
-	Serial_Port* p_sensorsPort = open_port();
+    active=1;
 
-	// create and run thread of updating the angles from IMU
-	pthread_t euler_thread;
-	pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
+    // current date/time based on current system
+    time_t now = time(0);
+    // convert now to string form
+    char* dt = ctime(&now);
+    string tempTime = (string)dt;
+    currentTime = space2underscore(tempTime);
 
-	// delay - waiting for angles and global variables to be stable
-	sleep(10);
+//    w.SavePlot();
 
-	// create and run thread for flight controller
-//	pthread_t controller_thread;
-//	pthread_create(&controller_thread, NULL, controller, NULL);
+    // open sensors port
+    Serial_Port* p_sensorsPort = open_port();
 
-	// calculate location
-	opticalFlow(1, NULL);
+    // create and run thread of updating the angles from IMU
+    pthread_t euler_thread;
+    pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
 
-	// output plot
-	//locationPlot(NULL);
+    // delay - waiting for angles and global variables to be stable
+    sleep(10);
 
-	// plot angles
-	anglesPlot(NULL);
+    w.show();
+    // create and run thread for flight controller
+ //	pthread_t controller_thread;
+ //	pthread_create(&controller_thread, NULL, controller, NULL);
 
-	// close sensors port
-	close_port(p_sensorsPort);
+    // calculate location
+    opticalFlow(1, NULL, w);
 
-    return 0;
+    // output plot
+    //locationPlot(NULL);
+
+    active = 0;
+
+    // plot angles
+//    anglesPlot(NULL);
+
+    // close sensors port
+    close_port(p_sensorsPort);
+
+    return a.exec();
 }
 
 

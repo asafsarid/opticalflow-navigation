@@ -8,6 +8,8 @@
 #ifndef OPTICALFLOW_H_
 #define OPTICALFLOW_H_
 
-int opticalFlow(int source, char* capturePath);
+#include "mainwindow.h"
+
+int opticalFlow(int source, char* capturePath, MainWindow &w);
 
 #endif /* OPTICALFLOW_H_ */

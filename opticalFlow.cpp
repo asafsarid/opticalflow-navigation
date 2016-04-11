@@ -17,6 +17,7 @@
 // Our files
 #include "perspective.cpp"
 #include "globals.h"
+#include "mainwindow.h"
 /*************************************** Namespaces ***************************************/
 using namespace cv;
 using namespace std;
@@ -25,6 +26,7 @@ using namespace std;
 double distx;
 double disty;
 string currentTime;
+int end_run;
 
 /*************************************** Auxiliary functions ******************************/
 
@@ -74,7 +76,12 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
 
 
 /* calculate the location */
-int opticalFlow(int source, char* capturePath){
+int opticalFlow(int source, char* capturePath, MainWindow &w){
+
+
+
+    end_run = 0;
+
    cout << "Capture from: " << endl << source << endl;
 
    VideoCapture cap(0); // capture from camera 1
@@ -109,10 +116,11 @@ int opticalFlow(int source, char* capturePath){
 	//namedWindow("flow", WINDOW_AUTOSIZE);
 
 	// add window for location plot
-	namedWindow("Location", WINDOW_AUTOSIZE);
-	Mat locationPlot = imread("locationBack.jpeg");
-	int locationCols = locationPlot.cols/2;
-	int locationRows = locationPlot.rows/2;
+
+//	namedWindow("Location", WINDOW_AUTOSIZE);
+//	Mat locationPlot = imread("locationBack.jpeg");
+//	int locationCols = locationPlot.cols/2;
+//	int locationRows = locationPlot.rows/2;
 
 
 	double location[2];
@@ -176,13 +184,12 @@ int opticalFlow(int source, char* capturePath){
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 			fprintf(pAnglesFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
-			circle(locationPlot, Point(locationCols + location[0], locationRows + location[1]), 2, Scalar(0, 0, 255), -1);
+//			circle(locationPlot, Point(locationCols + location[0], locationRows + location[1]), 2, Scalar(0, 0, 255), -1);
 
-			char TestStr2[500];
-			cout << "Yaw: " << eulerFromSensors.yaw*(180/PI) << endl;
+            w.UpdatePlot(location[0],location[1]);
 
 
-			imshow("Location", locationPlot);
+//			imshow("Location", locationPlot);
 
 			// temporary diable camera window!!!
 //			char TestStr[500], TestStr2[500];
@@ -198,16 +205,17 @@ int opticalFlow(int source, char* capturePath){
 
 		}
 
-		if(waitKey(1)>=0)
-			break;
+        if(waitKey(1)>=0)
+            break;
+        if(end_run)
+            break;
 		std::swap(prevgray, gray);
 	}
 
 	//destroyWindow("flow");
-	string locationPlotPicName = "./outputs/" + currentTime + "locationPlot.jpg";
-	imwrite(locationPlotPicName, locationPlot);
-	destroyWindow("Location");
-
+//	string locationPlotPicName = "./outputs/" + currentTime + "locationPlot.jpg";
+//	imwrite(locationPlotPicName, locationPlot);
+//	destroyWindow("Location");
 
 	// close the files
 	fclose(pLocationFile);

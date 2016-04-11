@@ -29,7 +29,6 @@ void locationPlot(void *info)
 	string line;
 	vector<vector<float> > coords;
 	int i = 0;
-	cout << "Starting Graph Thread" << endl;
 	while (getline(in, line))
 	{
 		float value;
@@ -41,11 +40,9 @@ void locationPlot(void *info)
 		{
 			coords[i].push_back(value);
 		}
-		cout << "Got Line - " << line << endl;
 		++i;
 	}
 	in.close();
-	cout << "End Of Graph Thread" << endl;
 	// create window
 	namedWindow("Location", WINDOW_AUTOSIZE);
 

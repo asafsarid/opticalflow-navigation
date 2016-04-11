@@ -34,5 +34,7 @@ extern float distanceFromGround;
 extern int active;
 // msg id from sensors
 extern int g_msgId;
+
+extern int end_run;
 // current running time
 extern std::string currentTime;
