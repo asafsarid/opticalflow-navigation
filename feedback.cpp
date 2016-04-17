@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
     // create and run thread of updating the angles from IMU
     pthread_t euler_thread;
-    pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
+    pthread_create(&euler_thread, NULL, updateSensors, p_sensorsPort);
 
     // delay - waiting for angles and global variables to be stable
     sleep(10);

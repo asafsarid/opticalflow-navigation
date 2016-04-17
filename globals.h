@@ -18,14 +18,18 @@ typedef struct {
 	float yaw; /*< Yaw angle (rad, -pi..+pi)*/
 }euler_angles;
 
+typedef struct{
+	double x;
+	double y;
+}locationStruct;
 
 #endif /* GLOBALS_H_ */
 
 
 
-// distance frame have traveled
-extern double distx;
-extern double disty;
+// location of the UAV
+extern locationStruct currLocation;
+extern locationStruct gpsLocation;
 // struct of Euler angles
 extern euler_angles eulerFromSensors;
 // distance- input from sensor
@@ -34,6 +38,14 @@ extern float distanceFromGround;
 extern int active;
 // msg id from sensors
 extern int g_msgId;
+// GPS initial coordinates
+extern int32_t initLat;
+extern int32_t initLon;
+extern int32_t initAlt;
+// GPS current coordinates
+extern int32_t currLat;
+extern int32_t currLon;
+extern int32_t currAlt;
 
 extern int end_run;
 // current running time

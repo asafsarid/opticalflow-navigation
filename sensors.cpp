@@ -80,7 +80,7 @@ int close_port(Serial_Port* p_sensorsPort)
 
 
 /* read the Euler angles from the IMU */
-void *updateEulerAngles(void *sensorsPort)
+void *updateSensors(void *sensorsPort)
 {
 	// 1. cast the input pointer to the desired format
 	Serial_Port *p_sensorsPort = (Serial_Port *)sensorsPort;
@@ -117,4 +117,66 @@ void *updateEulerAngles(void *sensorsPort)
 			}
 	}
 	return NULL;
+}
+
+void updateGPSLocation()
+{
+	double angle = angleFromCoordinates();
+	double distance = distanceFromCoordinates();
+
+	gpsLocation.x = distance * cos(toRadians(angle));
+	gpsLocation.y = distance * sin(toRadians(angle));
+
+	printf("GPS location: x- %.3f, y- %.3f\n", gpsLocation.x, gpsLocation.y);
+}
+
+// find angles between 2 gps coords- in degrees
+double angleFromCoordinates()
+{
+
+	// curr
+	double lat1 = currLat / 10000000;
+	double long1 = currLat / 10000000;
+	// init
+	double lat2 = initLat / 10000000;
+	double long2 = initLat / 10000000;
+
+    double dLon = (long2 - long1);
+
+    double y = sin(dLon) * cos(lat2);
+    double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+
+    double brng = atan2(y, x);
+
+    brng = toDegrees(brng);
+    brng = (brng + 360) % 360;
+    brng = 360 - brng;
+
+    return brng;
+}
+
+double distanceFromCoordinates()
+{
+	double R = 6371000; // metres
+	// curr
+	double φ1 = toRadians(currLat);
+	double φ2 = toRadians(initLat);
+	double Δφ = toRadians(initLat-currLat);
+	double Δλ = toRadians(initLat-currLat);
+
+	double a = sin(Δφ/2) * sin(Δφ/2) + cos(φ1) * cos(φ2) * sin(Δλ/2) * sin(Δλ/2);
+	double c = 2 * atan2(sqrt(a), sqrt(1-a));
+
+	double d = R * c;
+	return d;
+}
+
+double toRadians(double angle)
+{
+	return 3.141592 * angle / 180;
+}
+
+double toDegrees(double angle)
+{
+	return 180 * angle / 3.141592;
 }
