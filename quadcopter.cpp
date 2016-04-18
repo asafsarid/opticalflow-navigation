@@ -33,7 +33,7 @@ void *controller(void *control) {
 		y_mes = disty;
 		x_mes = distx;
 		// Get Z From Sonar Sensor
-		z_mes = distanceFromGround;
+        z_mes = distanceSonar;
 		// Get Euler Angles From IMU
 		the_mes = eulerFromSensors.pitch;
 		phi_mes = eulerFromSensors.roll;

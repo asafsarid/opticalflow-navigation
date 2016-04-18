@@ -19,22 +19,16 @@
 #include <sys/time.h>
 #include "sensors.h"
 #include "globals.h"
+
 // Namespaces
 using std::string;
 using namespace std;
-// Mavlink
-
-
-
-/* Structs Declaration */
-
 
 
 /* import global variable */
 euler_angles eulerFromSensors;
-float distanceFromGround;
+float distanceSonar;
 int active;
-int g_msgId;
 
 /* Connect to the port of the sensors, configure the device and return the serial port descriptor */
 Serial_Port* open_port(/*char *path*/)
@@ -92,6 +86,9 @@ void *updateEulerAngles(void *sensorsPort)
 	mavlink_message_t newMsg;
 	mavlink_attitude_t attitudeMsg;
 	mavlink_rangefinder_t rangeMsg;
+    mavlink_gps_raw_int_t gpsIntMsg;
+    mavlink_global_position_int_t globalPosMsg;
+
 	// 4. loop runs until we lower the active flag
 	while(active)
 	{
@@ -105,13 +102,26 @@ void *updateEulerAngles(void *sensorsPort)
 				eulerFromSensors.pitch 	= attitudeMsg.pitch;
 				eulerFromSensors.roll 	= attitudeMsg.roll;
 				eulerFromSensors.yaw 	= attitudeMsg.yaw;
+                eulerFromSensors.pitchspeed 	= attitudeMsg.pitchspeed;
+                eulerFromSensors.rollspeed 	= attitudeMsg.rollspeed;
+                eulerFromSensors.yawspeed 	= attitudeMsg.yawspeed;
 				break;
 			// 4.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
-				distanceFromGround		= rangeMsg.distance;
+                distanceSonar		= rangeMsg.distance*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
 				break;
 			// 4.1.2.3 Default Case
+            case MAVLINK_MSG_ID_GPS_RAW_INT:
+                mavlink_msg_gps_raw_int_decode(&newMsg, &gpsIntMsg);
+//                cout << "GPS Lat = " << gpsIntMsg.lat << endl;
+//                cout << "GPS Lon = " << gpsIntMsg.lon << endl;
+                break;
+            case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
+                mavlink_msg_global_position_int_decode(&newMsg, &globalPosMsg);
+//                cout << "GLOBAL Lat = " << globalPosMsg.lat << endl;
+//                cout << "GLOBAL Lon = " << globalPosMsg.lon << endl;
+                break;
 			default:
 				break;
 			}

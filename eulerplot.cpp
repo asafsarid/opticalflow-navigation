@@ -15,12 +15,15 @@ EulerPlot::~EulerPlot()
     delete ui;
 }
 
+//Initial Plot
 void EulerPlot::MakePlot()
 {
         QVector<double> t;
         QVector<double> phi,the,psi;
         QString file_name = "./outputs/" + QString::fromStdString(currentTime) + "angles.txt";
         QFile textFile(file_name);
+
+        //Read Data From File
         if(textFile.open(QIODevice::ReadOnly))
         {
             int i = 0;
@@ -41,17 +44,17 @@ void EulerPlot::MakePlot()
         ui->customEulerPlot->addGraph();
         ui->customEulerPlot->graph(0)->setData(t,phi);
         ui->customEulerPlot->graph(0)->setPen(QPen(Qt::blue));
-        ui->customEulerPlot->graph(0)->setName("pitch");
+        ui->customEulerPlot->graph(0)->setName("pitch - " + QString::fromUtf8("\u03B8"));
 
         ui->customEulerPlot->addGraph();
         ui->customEulerPlot->graph(1)->setData(t,the);
         ui->customEulerPlot->graph(1)->setPen(QPen(Qt::red));
-        ui->customEulerPlot->graph(1)->setName("roll");
+        ui->customEulerPlot->graph(1)->setName("roll - " + QString::fromUtf8("\u03C6"));
 
         ui->customEulerPlot->addGraph();
         ui->customEulerPlot->graph(2)->setData(t,psi);
         ui->customEulerPlot->graph(2)->setPen(QPen(Qt::green));
-        ui->customEulerPlot->graph(2)->setName("yaw");
+        ui->customEulerPlot->graph(2)->setName("yaw - " + QString::fromUtf8("\u03C8"));
 
         ui->customEulerPlot->xAxis->setLabel("Time (Sec)");
         ui->customEulerPlot->yAxis->setLabel("Angle (Degrees)");
@@ -65,6 +68,7 @@ void EulerPlot::MakePlot()
         }
 }
 
+//Save and Close
 void EulerPlot::on_pushButton_clicked()
 {
     QString file_name = "./outputs/" + QString::fromStdString(currentTime) + "angles.png";

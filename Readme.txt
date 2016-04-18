@@ -3,11 +3,14 @@ Installation Instructions:
 2. Install QT 5.6.0 (Qt Creator 3.6.1).
 3. If you are using virtualbox - disable 3D Acceleration.
 
-
-In order to run:
-
+Compile:
 qmake Feedback.pro
 make all
+
+Optional Flags:
+qmake Feedback.pro SONAR=SONAR_ACTIVE VIDEO=VIDEO_ACTIVE
+
+Run:
 sudo ./Feedback
 
 NOTE: APM should be stable when starting program!

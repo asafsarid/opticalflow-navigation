@@ -1,9 +1,7 @@
-//#ifndef MAINWINDOW_H
-//#define MAINWINDOW_H
-
 #include <QMainWindow>
 #include "qcustomplot.h"
 #include "eulerplot.h"
+#include "anglecorrection.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,6 +17,7 @@ public:
     void SavePlot();
     void UpdatePlot(double x, double y);
 
+    void AngleCorrectionUpdate(double deltaX, double deltaY, double predX, double predY);
 private slots:
     void MakePlot();
     void on_close_button_clicked();
@@ -27,10 +26,11 @@ private slots:
 
     void on_optical_button_clicked();
 
+    void on_clear_button_clicked();
+
 private:
     QCPCurve *newCurve;
     EulerPlot *ePlot;
+    AngleCorrection *angleCorrectionPlot;
     Ui::MainWindow *ui;
 };
-
-//#endif // MAINWINDOW_H

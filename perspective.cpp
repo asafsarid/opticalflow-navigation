@@ -129,36 +129,7 @@ void warpImage(const Mat &src,
     double sideLength=scale*d/cos(deg2Rad(halfFovy));
 
     warpMatrix(src.size(),theta,phi,gamma, scale,fovy,M,&corners);//Compute warp matrix
+//    warpMatrix(src.size(),0,0,0, scale,fovy,M,&corners);//Compute warp matrix
     warpPerspective(src,dst,M,Size(sideLength,sideLength));//Do actual image warp
 }
-
-//
-//int main(void){
-//    Mat m, disp, warp;
-//    vector<Point2f> corners;
-//
-//
-//    // temp
-////    Mat Iminput;
-////    Iminput = imread( "Picture14.jpg", 1 );
-////    warpImage(Iminput, 0, -30, 0, 0.5, 30, disp, warp, corners);
-////    imshow("Disp", disp);
-////    waitKey(0);
-//
-//
-//
-//    //VideoCapture cap(0);
-//    VideoCapture cap("/home/parallels/Documents/bgu/opticalFlow/basic2.avi");
-//
-//    while(cap.isOpened()){
-//        cap >> m;
-//        warpImage(m, 0, -50, 0, 1, 30, disp, warp, corners);
-//        imshow("Disp", disp);
-//        if(waitKey(5)>=0)
-//        	break;
-//    }
-//
-//}
-
-
 

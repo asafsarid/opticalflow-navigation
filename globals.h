@@ -16,6 +16,9 @@ typedef struct {
 	float roll; /*< Roll angle (rad, -pi..+pi)*/
 	float pitch; /*< Pitch angle (rad, -pi..+pi)*/
 	float yaw; /*< Yaw angle (rad, -pi..+pi)*/
+    float rollspeed;
+    float pitchspeed;
+    float yawspeed;
 }euler_angles;
 
 
@@ -29,12 +32,10 @@ extern double disty;
 // struct of Euler angles
 extern euler_angles eulerFromSensors;
 // distance- input from sensor
-extern float distanceFromGround;
+extern float distanceSonar;
 // flag- active operation
 extern int active;
-// msg id from sensors
-extern int g_msgId;
-
+// flag- stop opticalFlow
 extern int end_run;
 // current running time
 extern std::string currentTime;

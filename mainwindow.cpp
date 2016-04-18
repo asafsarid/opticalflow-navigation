@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "qcustomplot.h"
-
 
 #include "globals.h"
 
@@ -11,14 +9,19 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     MainWindow::MakePlot();
+    angleCorrectionPlot = new AngleCorrection(this);
+    angleCorrectionPlot->show();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
     delete newCurve;
+    delete ePlot;
+    delete angleCorrectionPlot;
 }
 
+// Initial Plot
 void MainWindow::MakePlot()
 {
     QVector<double> x, y, t;
@@ -27,59 +30,47 @@ void MainWindow::MakePlot()
     x.append(0);
     y.append(0);
     this->newCurve->setData(x, y);
-//    this->newCurve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, Qt::blue, 1.5));
 
-    ui->customPlot->xAxis->setLabel("X");
-    ui->customPlot->yAxis->setLabel("Y");
-    ui->customPlot->xAxis->setRange(-400, 400);
-    ui->customPlot->yAxis->setRange(-300, 300);
+    ui->customPlot->xAxis->setLabel("X (cm)");
+    ui->customPlot->yAxis->setLabel("Y (cm)");
+    ui->customPlot->xAxis->setRange(-100, 100);
+    ui->customPlot->yAxis->setRange(-100, 100);
     ui->customPlot->replot();
 
-//    QVector<double> v;
-//    QVector<double> t;
-//    QFile textFile("./outputs/pitch.txt");
-//    if(textFile.open(QIODevice::ReadOnly))
-//    {
-//        double d;
-//        int i = 0;
-//        QTextStream textStream(&textFile);
-//        while (!textStream.atEnd()) {
-//            QString line = textStream.readLine(1);
-//            if(textStream.status() == QTextStream::Ok){
-//                QStringList lstLine = textStream.split(QRegExp("\\s"));
-//                       lstLine.at(0);
-//                v.append(d);
-//                t.append(i);
-//                i++;
-//            }
-//            else
-//                break;
-//        }
-//    ui->customPlot->addGraph();
-
-//    ui->customPlot->graph(0)->setData(t,v);
-//    ui->customPlot->graph(0)->setPen(QPen(Qt::blue));
-//    ui->customPlot->xAxis->setLabel("Time");
-//    ui->customPlot->yAxis->setLabel("Pitch");
-//    ui->customPlot->graph(0)->rescaleAxes();
-//    ui->customPlot->yAxis->setRange(-180, 180);
-//    ui->customPlot->replot();
-//    }
 }
 
-
-
+// Update Plot - Add X,Y
 void MainWindow::UpdatePlot(double x, double y)
 {
     this->newCurve->addData(x, y);
+    if (x > 90 || y > 90){
+        ui->customPlot->yAxis->setRange(-200, 200);
+        ui->customPlot->xAxis->setRange(-200, 200);
+    }
+    if (x > 190 || y > 190){
+        ui->customPlot->yAxis->setRange(-400, 400);
+        ui->customPlot->xAxis->setRange(-400, 400);
+    }
+    if (x > 390 || y > 390){
+        ui->customPlot->yAxis->setRange(-800, 800);
+        ui->customPlot->xAxis->setRange(-800, 800);
+    }
     ui->customPlot->replot();
 }
 
+// Update The Angle Correction Plot
+void MainWindow::AngleCorrectionUpdate(double deltaX, double deltaY, double predX, double predY)
+{
+    this->angleCorrectionPlot->UpdatePlot(deltaX, deltaY, predX, predY);
+}
+
+// Save Plot To File
 void MainWindow::SavePlot()
 {
     ui->customPlot->savePng("./outputs/"+ QString::fromStdString(currentTime) +"location.png");
 }
 
+// Save and Close (will exit program)
 void MainWindow::on_close_button_clicked()
 {
     this->SavePlot();
@@ -87,13 +78,21 @@ void MainWindow::on_close_button_clicked()
     qApp->exit();
 }
 
+// Opens Euler Plot
 void MainWindow::on_euler_button_clicked()
 {
     ePlot = new EulerPlot(this);
     ePlot->show();
 }
 
+// Stops Optical Flow Execution
 void MainWindow::on_optical_button_clicked()
 {
     end_run = 1;
+}
+
+// Clear Data From Graph
+void MainWindow::on_clear_button_clicked()
+{
+    this->newCurve->clearData();
 }

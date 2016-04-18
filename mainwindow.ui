@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>665</width>
-    <height>437</height>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,15 +15,22 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1" colspan="3">
-     <widget class="QCustomPlot" name="customPlot" native="true"/>
-    </item>
     <item row="1" column="3">
      <widget class="QPushButton" name="euler_button">
       <property name="text">
        <string>Euler</string>
       </property>
      </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="optical_button">
+      <property name="text">
+       <string>Stop Optical Flow</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" colspan="3">
+     <widget class="QCustomPlot" name="customPlot" native="true"/>
     </item>
     <item row="1" column="1">
      <widget class="QPushButton" name="close_button">
@@ -32,10 +39,10 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="optical_button">
+    <item row="2" column="1" colspan="3">
+     <widget class="QPushButton" name="clear_button">
       <property name="text">
-       <string>Stop Optical Flow</string>
+       <string>Clear</string>
       </property>
      </widget>
     </item>

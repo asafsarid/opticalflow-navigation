@@ -16,11 +16,10 @@
 #include "opencv2/highgui/highgui.hpp"
 // Our files
 #include "sensors.h"
-#include "opticalFlow.h"
+#include "opticalFlow.h"  //includes also mainwindow.h
 #include "globals.h"
 #include "quadcopter.h"
 #include "locationPlot.h"
-//#include "mainwindow.h"
 #include <QApplication>
 
 /* Namespaces */
@@ -40,9 +39,8 @@ string space2underscore(string text)
 
 int main(int argc, char** argv)
 {
-
+    // initialize qt application
     QApplication a(argc, argv);
-    MainWindow w;
 
     active=1;
 
@@ -52,8 +50,6 @@ int main(int argc, char** argv)
     char* dt = ctime(&now);
     string tempTime = (string)dt;
     currentTime = space2underscore(tempTime);
-
-//    w.SavePlot();
 
     // open sensors port
     Serial_Port* p_sensorsPort = open_port();
@@ -65,7 +61,10 @@ int main(int argc, char** argv)
     // delay - waiting for angles and global variables to be stable
     sleep(10);
 
+    // start qt window
+    MainWindow w;
     w.show();
+
     // create and run thread for flight controller
  //	pthread_t controller_thread;
  //	pthread_create(&controller_thread, NULL, controller, NULL);
@@ -73,13 +72,8 @@ int main(int argc, char** argv)
     // calculate location
     opticalFlow(1, NULL, w);
 
-    // output plot
-    //locationPlot(NULL);
-
+    // stops euler_thread loop
     active = 0;
-
-    // plot angles
-//    anglesPlot(NULL);
 
     // close sensors port
     close_port(p_sensorsPort);

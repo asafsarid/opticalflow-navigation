@@ -74,13 +74,32 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
     disty = distPixely/counter;
 }
 
+void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
+{
+    // the distance each pixel traveled per two frames
+    double distPixelx = 0, distPixely = 0;
+    // count the number of pixels
+    int counter = 0;
+    // draw the optical flow and sum the distance that all the pixels have traveled
+    for(int y = 0; y < flow.rows; y += step)
+        for(int x = 0; x < flow.cols; x += step)
+        {
+            if(outOfROI(x,y, corners))
+                continue;
+            const Point2f& fxy = flow.at<Point2f>(y, x);
+            distPixelx += fxy.x;
+            distPixely += fxy.y;
+            counter++;
+        }
+    // update the global variable - location of the UAV
+    distx = distPixelx/counter;
+    disty = distPixely/counter;
+}
 
 /* calculate the location */
 int opticalFlow(int source, char* capturePath, MainWindow &w){
 
-
-
-    end_run = 0;
+   end_run = 0;
 
    cout << "Capture from: " << endl << source << endl;
 
@@ -89,7 +108,6 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 	if( !cap.isOpened() )
 		return -1;
 	double fps = cap.get(CV_CAP_PROP_FPS);
-	//double numOfFrames = cap.get(CV_CAP_PROP_FRAME_COUNT);
 
 	// Set Resolution - The Default Resolution Is 640 x 480
 	cap.set(CV_CAP_PROP_FRAME_WIDTH,WIDTH_RES);
@@ -113,29 +131,15 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 
 	UMat gray, prevgray, uflow;
 
-	//namedWindow("flow", WINDOW_AUTOSIZE);
-
-	// add window for location plot
-
-//	namedWindow("Location", WINDOW_AUTOSIZE);
-//	Mat locationPlot = imread("locationBack.jpeg");
-//	int locationCols = locationPlot.cols/2;
-//	int locationRows = locationPlot.rows/2;
-
+#ifdef VIDEO_ACTIVE
+    namedWindow("flow", WINDOW_AUTOSIZE);
+#endif
 
 	double location[2];
 	int frame_counter = 0;
 	int i;
+    double Xpred, Ypred;
 	double rovX, rovY;		// range of view in both axis
-#ifdef SONAR_ACTIVE
-	rovX = 2*0.4*distanceFromGround; 		// 2 * tan(43.6/2) * dist
-	rovY = 2*0.3*distanceFromGround;		// 2 * tan(33.7/2) * dist
-#else
-	double dist=87; 		// distance from surface in cm
-	rovX = 2*0.4*dist; 		// 2 * tan(43.6/2) * dist
-	rovY = 2*0.3*dist;		// 2 * tan(33.7/2) * dist
-#endif
-
 
 	/*  open files for output data											***/
 	/******************************************************************************/
@@ -154,7 +158,6 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 	// for each frame calculate optical flow
 	for(;;)
 	{
-
 		Mat m, disp, warp;
 		vector<Point2f> corners;
 		// take out frame- still distorted
@@ -162,47 +165,51 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 		// undistort the frame using the calibration parameters
 		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
-		warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), 1, 30, processedFrame, warp, corners);
+        warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.pitch*(180/PI), 1, 36, processedFrame, warp, corners);
 
 		// lower the process effort by transforming the picture to gray
-		cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
+        cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
 
 		if( !prevgray.empty() )
 		{
 //			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 15/* def 15*/, 3, 5, 1.2 /* def 1.2*/, 0);
 			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
+
 //			cvtColor(prevgray, cflow, COLOR_GRAY2BGR);
-			uflow.copyTo(flow);
+            uflow.copyTo(flow);
 
 //			drawOptFlowMap(flow, cflow, 16, 1.5, Scalar(0, 255, 0), fps, corners);
-			drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), fps, corners);
+#ifdef VIDEO_ACTIVE
+            drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), fps, corners);
+            imshow("flow", prevgray);
+#endif
 
-			location[0] += (distx/WIDTH_RES)*rovX;
-			location[1] += (disty/HEIGHT_RES)*rovY;
+            calcAvgOpticalFlow(flow, 16, corners);
+
+            #ifdef SONAR_ACTIVE
+                rovX = 2*0.44523*distanceSonar*100; 		// 2 * tan(48/2) * dist(cm)
+                rovY = 2*0.32492*distanceSonar*100;		// 2 * tan(36/2) * dist(cm)
+                cout << distanceSonar << endl;
+            #else
+                double dist=87; 		// distance from surface in cm
+                rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
+                rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
+            #endif
+
+            Xpred = (eulerFromSensors.pitchspeed*WIDTH_RES) / 48;
+            Ypred = (eulerFromSensors.rollspeed*HEIGHT_RES) / 36;
+
+            location[0] += ((distx-Xpred)/WIDTH_RES)*rovX;   // This is in cm
+            location[1] += ((disty-Ypred)/HEIGHT_RES)*rovY;  // This is in cm
 
 			frame_counter++;
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 			fprintf(pAnglesFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
-//			circle(locationPlot, Point(locationCols + location[0], locationRows + location[1]), 2, Scalar(0, 0, 255), -1);
 
+            // Update Plots
             w.UpdatePlot(location[0],location[1]);
-
-
-//			imshow("Location", locationPlot);
-
-			// temporary diable camera window!!!
-//			char TestStr[500], TestStr2[500];
-//			sprintf(TestStr,"Frame: %d    Location:   "
-//					"X: %.3f, Y: %.3f.  ", frame_counter, location[0], location[1]);
-//			sprintf(TestStr2,"Euler: %.3f, %.3f, %.3f. dist: %.3f",
-//								eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI), distanceFromGround);
-//
-//			putText(prevgray, TestStr, Point(10,25), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
-//			putText(prevgray, TestStr2, Point(10,50), CV_FONT_NORMAL, 0.5, Scalar(255,255,255),0.5,1); //OutImg is Mat class;
-//
-//			imshow("flow", prevgray);
-
+            w.AngleCorrectionUpdate(distx, disty, Xpred, Ypred);
 		}
 
         if(waitKey(1)>=0)
@@ -212,10 +219,9 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 		std::swap(prevgray, gray);
 	}
 
-	//destroyWindow("flow");
-//	string locationPlotPicName = "./outputs/" + currentTime + "locationPlot.jpg";
-//	imwrite(locationPlotPicName, locationPlot);
-//	destroyWindow("Location");
+#ifdef VIDEO_ACTIVE
+    destroyWindow("flow");
+#endif
 
 	// close the files
 	fclose(pLocationFile);
