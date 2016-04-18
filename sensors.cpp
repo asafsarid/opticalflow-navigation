@@ -31,6 +31,9 @@ using namespace std;
 
 
 /* import global variable */
+gpsCoords currGPSCoords;
+gpsCoords initGPSCoords;
+heightMedian height;
 euler_angles eulerFromSensors;
 float distanceFromGround;
 int active;
@@ -135,11 +138,11 @@ double angleFromCoordinates()
 {
 
 	// curr
-	double lat1 = currLat / 10000000;
-	double long1 = currLat / 10000000;
+	double lat1 = currGPSCoords.lat / 10000000;
+	double long1 = currGPSCoords.lon / 10000000;
 	// init
-	double lat2 = initLat / 10000000;
-	double long2 = initLat / 10000000;
+	double lat2 = initGPSCoords.lat / 10000000;
+	double long2 = initGPSCoords.lon / 10000000;
 
     double dLon = (long2 - long1);
 
@@ -159,10 +162,10 @@ double distanceFromCoordinates()
 {
 	double R = 6371000; // metres
 	// curr
-	double φ1 = toRadians(currLat);
-	double φ2 = toRadians(initLat);
-	double Δφ = toRadians(initLat-currLat);
-	double Δλ = toRadians(initLat-currLat);
+	double φ1 = toRadians(currGPSCoords.lat);
+	double φ2 = toRadians(initGPSCoords.lat);
+	double Δφ = toRadians(initGPSCoords.lat-currGPSCoords.lat);
+	double Δλ = toRadians(initGPSCoords.lon-currGPSCoords.lon);
 
 	double a = sin(Δφ/2) * sin(Δφ/2) + cos(φ1) * cos(φ2) * sin(Δλ/2) * sin(Δλ/2);
 	double c = 2 * atan2(sqrt(a), sqrt(1-a));
@@ -179,4 +182,41 @@ double toRadians(double angle)
 double toDegrees(double angle)
 {
 	return 180 * angle / 3.141592;
+}
+
+void updateHeight(){
+	int lastIndex;
+	int i, j;
+	uint32_t tempVal, tempLoc;
+
+	// find the last sample (to switch with the new one)
+	// increase location for the rest
+	for(i=0; i< height.length; i++)
+	{
+		if(height.location[i] == height.length - 1)
+			lastIndex = i;
+		else
+			height.location[i]++;
+	}
+
+	// insert new sample
+	height.location[lastIndex] = 0;
+	height.value[lastIndex] = distanceFromGround;
+
+	// insetion sort
+	// TODO: opt
+	for (int i = 0; i < height.length; i++){
+		j = i;
+
+		while (j > 0 && height.value[j] < height.value[j-1]){
+			  tempVal = height.value[j];
+			  tempLoc = height.location[j];
+			  height.value[j] = height.value[j-1];
+			  height.location[j] = height.location[j-1];
+			  height.value[j-1] = tempVal;
+			  height.location[j-1] = tempLoc;
+			  j--;
+			  }
+		}
+	height.median = height.value[height.length/2];
 }

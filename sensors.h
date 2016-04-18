@@ -20,5 +20,6 @@ double angleFromCoordinates();
 double distanceFromCoordinates();
 double toRadians(double angle);
 double toDegrees(double angle);
+void updateHeight();
 
 #endif /* SENSORS_H_ */

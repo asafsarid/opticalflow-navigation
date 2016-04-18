@@ -23,8 +23,8 @@ using namespace cv;
 using namespace std;
 /*************************************** Global Variables *********************************/
 /* import global variables */
-extern locationStruct currLocation;
-extern locationStruct gpsLocation;
+locationStruct currLocation;
+locationStruct gpsLocation;
 string currentTime;
 int end_run;
 

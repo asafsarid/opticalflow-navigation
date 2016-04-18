@@ -44,7 +44,8 @@ int main(int argc, char** argv)
     QApplication a(argc, argv);
     MainWindow w;
 
-    active=1;
+    active	= 1;
+    init	= 1;
 
     // current date/time based on current system
     time_t now = time(0);
@@ -64,6 +65,7 @@ int main(int argc, char** argv)
 
     // delay - waiting for angles and global variables to be stable
     sleep(10);
+    init = 0;
 
     w.show();
     // create and run thread for flight controller
