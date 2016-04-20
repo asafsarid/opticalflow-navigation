@@ -22,9 +22,9 @@
 using namespace cv;
 using namespace std;
 /*************************************** Global Variables *********************************/
-// distance frame have traveled
-double distx;
-double disty;
+/* import global variables */
+locationStruct currLocation;
+locationStruct gpsLocation;
 string currentTime;
 int end_run;
 
@@ -70,8 +70,8 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
             counter++;
         }
     // update the global variable - location of the UAV
-    distx = distPixelx/counter;
-    disty = distPixely/counter;
+    currLocation.x = distPixelx/counter;
+    currLocation.y = distPixely/counter;
 }
 
 void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
@@ -184,6 +184,7 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
             imshow("flow", prevgray);
 #endif
 
+<<<<<<< HEAD
             calcAvgOpticalFlow(flow, 16, corners);
 
             #ifdef SONAR_ACTIVE
@@ -201,6 +202,10 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 
             location[0] += ((distx-Xpred)/WIDTH_RES)*rovX;   // This is in cm
             location[1] += ((disty-Ypred)/HEIGHT_RES)*rovY;  // This is in cm
+=======
+			location[0] += (currLocation.x/WIDTH_RES)*rovX;
+			location[1] += (currLocation.y/HEIGHT_RES)*rovY;
+>>>>>>> refs/remotes/origin/gpsHandle
 
 			frame_counter++;
 

@@ -14,7 +14,12 @@
 
 Serial_Port* open_port(/*char *path*/);
 int close_port(Serial_Port* p_sensorsPort);
-void *updateEulerAngles(void *sensorsPort);
-
+void *updateSensors(void *sensorsPort);
+void updateGPSLocation();
+double angleFromCoordinates();
+double distanceFromCoordinates();
+double toRadians(double angle);
+double toDegrees(double angle);
+void updateHeight();
 
 #endif /* SENSORS_H_ */

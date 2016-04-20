@@ -42,7 +42,8 @@ int main(int argc, char** argv)
     // initialize qt application
     QApplication a(argc, argv);
 
-    active=1;
+    active	= 1;
+    init	= 1;
 
     // current date/time based on current system
     time_t now = time(0);
@@ -56,10 +57,11 @@ int main(int argc, char** argv)
 
     // create and run thread of updating the angles from IMU
     pthread_t euler_thread;
-    pthread_create(&euler_thread, NULL, updateEulerAngles, p_sensorsPort);
+    pthread_create(&euler_thread, NULL, updateSensors, p_sensorsPort);
 
     // delay - waiting for angles and global variables to be stable
     sleep(10);
+    init = 0;
 
     // start qt window
     MainWindow w;
