@@ -51,7 +51,7 @@ void AngleCorrection::MakePlot()
     //Set Labels and Ranges
     ui->correctXPlot->xAxis->setLabel("Time (Sec)");
     ui->correctXPlot->yAxis->setLabel("Distance X (cm)");
-    ui->correctXPlot->yAxis->setRange(-30, 30);
+    ui->correctXPlot->yAxis->setRange(0, 1.8);
     ui->correctYPlot->xAxis->setLabel("Time (Sec)");
     ui->correctYPlot->yAxis->setLabel("Distance Y (cm)");
     ui->correctYPlot->yAxis->setRange(-30, 30);

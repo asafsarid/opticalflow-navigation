@@ -112,13 +112,30 @@ void *updateSensors(void *sensorsPort)
 			// 4.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
+				printf("raw sonar: %.3f\n", rangeMsg.distance);
                 distanceSonar		= rangeMsg.distance*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
-				break;
+                updateHeight();
+                break;
 			// 4.1.2.3 Default Case
             case MAVLINK_MSG_ID_GPS_RAW_INT:
                 mavlink_msg_gps_raw_int_decode(&newMsg, &gpsIntMsg);
-//                cout << "GPS Lat = " << gpsIntMsg.lat << endl;
-//                cout << "GPS Lon = " << gpsIntMsg.lon << endl;
+                //cout << "GPS Lat = " << gpsIntMsg.lat << endl;
+                //cout << "GPS Lon = " << gpsIntMsg.lon << endl;
+                // if on init- update init coords, else- current
+                if(init)
+                {
+                	initGPSCoords.lat = gpsIntMsg.lat / (double)10000000;
+                	initGPSCoords.lon = gpsIntMsg.lon / (double)10000000;
+                	initGPSCoords.alt = gpsIntMsg.alt / (double)10000000;
+                }
+                else
+                {
+                	currGPSCoords.lat = gpsIntMsg.lat / (double)10000000;
+                	currGPSCoords.lon = gpsIntMsg.lon / (double)10000000;
+                	currGPSCoords.alt = gpsIntMsg.alt / (double)10000000;
+                	updateGPSLocation();
+                }
+
                 break;
             case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
                 mavlink_msg_global_position_int_decode(&newMsg, &globalPosMsg);
@@ -140,7 +157,7 @@ void updateGPSLocation()
 	gpsLocation.x = distance * cos(toRadians(angle));
 	gpsLocation.y = distance * sin(toRadians(angle));
 
-	printf("GPS location: x- %.3f, y- %.3f\n", gpsLocation.x, gpsLocation.y);
+	//printf("GPS location: x- %.3f, y- %.3f\n", gpsLocation.x, gpsLocation.y);
 }
 
 // find angles between 2 gps coords- in degrees
@@ -148,12 +165,12 @@ double angleFromCoordinates()
 {
 
 	// curr
-	double lat1 = currGPSCoords.lat / 10000000;
-	double long1 = currGPSCoords.lon / 10000000;
+	double lat1 = currGPSCoords.lat;
+	double long1 = currGPSCoords.lon;
 	// init
-	double lat2 = initGPSCoords.lat / 10000000;
-	double long2 = initGPSCoords.lon / 10000000;
-
+	double lat2 = initGPSCoords.lat;
+	double long2 = initGPSCoords.lon;
+	//cout << "lat and lon: " << lat1 << ":" << long1 << endl;
     double dLon = (long2 - long1);
 
     double y = sin(dLon) * cos(lat2);
@@ -162,9 +179,11 @@ double angleFromCoordinates()
     double brng = atan2(y, x);
 
     brng = toDegrees(brng);
-    brng = (brng + 360) % 360;
+    brng = (brng + 360);
+    while(brng > 360)
+    	brng -= 360;
     brng = 360 - brng;
-
+    //printf("gps angle: %.3f\n", brng);
     return brng;
 }
 
@@ -172,15 +191,18 @@ double distanceFromCoordinates()
 {
 	double R = 6371000; // metres
 	// curr
-	double φ1 = toRadians(currGPSCoords.lat);
-	double φ2 = toRadians(initGPSCoords.lat);
-	double Δφ = toRadians(initGPSCoords.lat-currGPSCoords.lat);
-	double Δλ = toRadians(initGPSCoords.lon-currGPSCoords.lon);
+	//printf("gps init: %.3f, %.3f. curr: %.3f, %.3f\n", initGPSCoords.lat, initGPSCoords.lon,
+	//		currGPSCoords.lat, currGPSCoords.lon);
+	double phi1 = toRadians(currGPSCoords.lat);
+	double phi2 = toRadians(initGPSCoords.lat);
+	double deltaPhi = toRadians(initGPSCoords.lat-currGPSCoords.lat);
+	double deltaLambda = toRadians(initGPSCoords.lon-currGPSCoords.lon);
 
-	double a = sin(Δφ/2) * sin(Δφ/2) + cos(φ1) * cos(φ2) * sin(Δλ/2) * sin(Δλ/2);
+	double a = sin(deltaPhi/2) * sin(deltaPhi/2) + cos(phi1) * cos(phi2) * sin(deltaLambda/2) * sin(deltaLambda/2);
 	double c = 2 * atan2(sqrt(a), sqrt(1-a));
 
 	double d = R * c;
+	//printf("gps distnace: %.3f\n", d);
 	return d;
 }
 
@@ -195,9 +217,9 @@ double toDegrees(double angle)
 }
 
 void updateHeight(){
-	int lastIndex;
+	int lastIndex = 0;
 	int i, j;
-	uint32_t tempVal, tempLoc;
+	double tempVal, tempLoc;
 
 	// find the last sample (to switch with the new one)
 	// increase location for the rest
@@ -211,11 +233,11 @@ void updateHeight(){
 
 	// insert new sample
 	height.location[lastIndex] = 0;
-	height.value[lastIndex] = distanceFromGround;
+	height.value[lastIndex] = distanceSonar;
 
 	// insetion sort
 	// TODO: opt
-	for (int i = 0; i < height.length; i++){
+	for (i = 0; i < height.length; i++){
 		j = i;
 
 		while (j > 0 && height.value[j] < height.value[j-1]){
@@ -229,4 +251,9 @@ void updateHeight(){
 			  }
 		}
 	height.median = height.value[height.length/2];
+	for(i = 0 ; i < height.length; i++)
+	{
+		printf("%d: %.3f, ", i, height.value[i]);
+	}
+	printf("\nSonar: curr: %.3f, median: %.3f\n", distanceSonar, height.median);
 }

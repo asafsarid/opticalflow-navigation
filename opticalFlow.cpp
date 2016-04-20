@@ -92,8 +92,8 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
             counter++;
         }
     // update the global variable - location of the UAV
-    distx = distPixelx/counter;
-    disty = distPixely/counter;
+    currLocation.x = distPixelx/counter;
+    currLocation.y = distPixely/counter;
 }
 
 /* calculate the location */
@@ -103,7 +103,7 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 
    cout << "Capture from: " << endl << source << endl;
 
-   VideoCapture cap(0); // capture from camera 1
+   VideoCapture cap(1); // capture from camera 1
 
 	if( !cap.isOpened() )
 		return -1;
@@ -172,51 +172,39 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 
 		if( !prevgray.empty() )
 		{
-//			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 15/* def 15*/, 3, 5, 1.2 /* def 1.2*/, 0);
 			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
 
-//			cvtColor(prevgray, cflow, COLOR_GRAY2BGR);
             uflow.copyTo(flow);
 
-//			drawOptFlowMap(flow, cflow, 16, 1.5, Scalar(0, 255, 0), fps, corners);
 #ifdef VIDEO_ACTIVE
             drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), fps, corners);
             imshow("flow", prevgray);
 #endif
-
-<<<<<<< HEAD
             calcAvgOpticalFlow(flow, 16, corners);
 
-            #ifdef SONAR_ACTIVE
-                rovX = 2*0.44523*distanceSonar*100; 		// 2 * tan(48/2) * dist(cm)
-                rovY = 2*0.32492*distanceSonar*100;		// 2 * tan(36/2) * dist(cm)
-                cout << distanceSonar << endl;
-            #else
-                double dist=87; 		// distance from surface in cm
-                rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
-                rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
-            #endif
-
+#ifdef SONAR_ACTIVE
+            rovX = 2*0.44523*distanceSonar*100; 		// 2 * tan(48/2) * dist(cm)
+            rovY = 2*0.32492*distanceSonar*100;		// 2 * tan(36/2) * dist(cm)
+            cout << distanceSonar << endl;
+#else
+            double dist=87; 		// distance from surface in cm
+            rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
+            rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
+#endif
             Xpred = (eulerFromSensors.pitchspeed*WIDTH_RES) / 48;
             Ypred = (eulerFromSensors.rollspeed*HEIGHT_RES) / 36;
 
-            location[0] += ((distx-Xpred)/WIDTH_RES)*rovX;   // This is in cm
-            location[1] += ((disty-Ypred)/HEIGHT_RES)*rovY;  // This is in cm
-=======
-			location[0] += (currLocation.x/WIDTH_RES)*rovX;
-			location[1] += (currLocation.y/HEIGHT_RES)*rovY;
->>>>>>> refs/remotes/origin/gpsHandle
+			location[0] += ((currLocation.x - Xpred)/WIDTH_RES)*rovX;
+			location[1] += ((currLocation.y - Ypred)/HEIGHT_RES)*rovY;
 
 			frame_counter++;
 
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 			fprintf(pAnglesFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
-
             // Update Plots
             w.UpdatePlot(location[0],location[1]);
-            w.AngleCorrectionUpdate(distx, disty, Xpred, Ypred);
+            w.AngleCorrectionUpdate(height.median, currLocation.y, distanceSonar, Ypred);
 		}
-
         if(waitKey(1)>=0)
             break;
         if(end_run)

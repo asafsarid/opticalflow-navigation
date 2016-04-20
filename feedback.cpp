@@ -26,6 +26,9 @@
 using namespace cv;
 using namespace std;
 
+/* global */
+int init;
+
 /* this function replace all spaces with underscores in string */
 string space2underscore(string text)
 {

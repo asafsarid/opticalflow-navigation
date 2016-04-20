@@ -30,8 +30,8 @@ void *controller(void *control) {
 
 	for(;;){
 		// Get X,Y From Optical Flow
-		y_mes = disty;
-		x_mes = distx;
+		x_mes = currLocation.x;
+		y_mes = currLocation.y;
 		// Get Z From Sonar Sensor
         z_mes = distanceSonar;
 		// Get Euler Angles From IMU
