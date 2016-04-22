@@ -15,7 +15,7 @@ EulerPlot::~EulerPlot()
     delete ui;
 }
 
-//Initial Plot
+//Draw - read data from txt files and plot
 void EulerPlot::MakePlot()
 {
         QVector<double> t;
@@ -41,29 +41,33 @@ void EulerPlot::MakePlot()
                 else
                     break;
             }
+        //Phi plot
         ui->customEulerPlot->addGraph();
         ui->customEulerPlot->graph(0)->setData(t,phi);
         ui->customEulerPlot->graph(0)->setPen(QPen(Qt::blue));
         ui->customEulerPlot->graph(0)->setName("pitch - " + QString::fromUtf8("\u03B8"));
 
+        //Theta plot
         ui->customEulerPlot->addGraph();
         ui->customEulerPlot->graph(1)->setData(t,the);
         ui->customEulerPlot->graph(1)->setPen(QPen(Qt::red));
         ui->customEulerPlot->graph(1)->setName("roll - " + QString::fromUtf8("\u03C6"));
 
+        //Psi plot
         ui->customEulerPlot->addGraph();
         ui->customEulerPlot->graph(2)->setData(t,psi);
         ui->customEulerPlot->graph(2)->setPen(QPen(Qt::green));
         ui->customEulerPlot->graph(2)->setName("yaw - " + QString::fromUtf8("\u03C8"));
 
+        //Set labels, ranges, legend
         ui->customEulerPlot->xAxis->setLabel("Time (Sec)");
         ui->customEulerPlot->yAxis->setLabel("Angle (Degrees)");
         ui->customEulerPlot->rescaleAxes();
         ui->customEulerPlot->yAxis->setRange(-180, 180);
-
         ui->customEulerPlot->legend->setVisible(true);
         ui->customEulerPlot->legend->setFont(QFont("Helvetica", 9));
 
+        //Draw
         ui->customEulerPlot->replot();
         }
 }

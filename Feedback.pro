@@ -23,13 +23,12 @@ isEmpty(SONAR){
 }
 
 QMAKE_CLEAN += ./Feedback
-QMAKE_CXXFLAGS += -D$${SONAR} -D$${VIDEO}
+QMAKE_CXXFLAGS += -D$${SONAR} -D$${VIDEO} -std=c++11
 
 SOURCES +=\
         mainwindow.cpp \
     att_control.cpp \
     feedback.cpp \
-    locationPlot.cpp \
     opticalFlow.cpp \
     perspective.cpp \
     pid.cpp \
@@ -43,9 +42,7 @@ SOURCES +=\
 
 HEADERS  += mainwindow.h \
     att_control.h \
-    feedback.h \
     globals.h \
-    locationPlot.h \
     opticalFlow.h \
     pid.h \
     pos_control.h \

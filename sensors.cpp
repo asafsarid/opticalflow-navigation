@@ -2,7 +2,6 @@
  * sensors.cpp
  *
  *  Created on: Feb 15, 2016
- *      Author: parallels
  */
 /* Includes */
 // General
@@ -24,7 +23,6 @@
 using std::string;
 using namespace std;
 
-
 /* import global variable */
 gpsCoords currGPSCoords;
 gpsCoords initGPSCoords;
@@ -36,7 +34,6 @@ int active;
 /* Connect to the port of the sensors, configure the device and return the serial port descriptor */
 Serial_Port* open_port(/*char *path*/)
 {
-
 	// 1. set path and baudrate
 	char *uart_name = (char*)"/dev/ttyACM0";
 	int baudrate = 115200;
@@ -63,7 +60,7 @@ Serial_Port* open_port(/*char *path*/)
 	mavlink_message_t initMsg;
 	p_sensorsPort->read_message(initMsg);
 
-	// 4. return the port
+    // 5. return the port
 	return p_sensorsPort;
 }
 
@@ -90,7 +87,6 @@ void *updateSensors(void *sensorsPort)
 	mavlink_attitude_t attitudeMsg;
 	mavlink_rangefinder_t rangeMsg;
     mavlink_gps_raw_int_t gpsIntMsg;
-    mavlink_global_position_int_t globalPosMsg;
 
 	// 4. loop runs until we lower the active flag
 	while(active)
@@ -112,15 +108,13 @@ void *updateSensors(void *sensorsPort)
 			// 4.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
-				printf("raw sonar: %.3f\n", rangeMsg.distance);
+//                cout << "raw sonar: " << rangeMsg.distance << endl;
                 distanceSonar		= rangeMsg.distance*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
                 updateHeight();
                 break;
 			// 4.1.2.3 Default Case
             case MAVLINK_MSG_ID_GPS_RAW_INT:
                 mavlink_msg_gps_raw_int_decode(&newMsg, &gpsIntMsg);
-                //cout << "GPS Lat = " << gpsIntMsg.lat << endl;
-                //cout << "GPS Lon = " << gpsIntMsg.lon << endl;
                 // if on init- update init coords, else- current
                 if(init)
                 {
@@ -135,12 +129,6 @@ void *updateSensors(void *sensorsPort)
                 	currGPSCoords.alt = gpsIntMsg.alt / (double)10000000;
                 	updateGPSLocation();
                 }
-
-                break;
-            case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
-                mavlink_msg_global_position_int_decode(&newMsg, &globalPosMsg);
-//                cout << "GLOBAL Lat = " << globalPosMsg.lat << endl;
-//                cout << "GLOBAL Lon = " << globalPosMsg.lon << endl;
                 break;
 			default:
 				break;
@@ -156,8 +144,6 @@ void updateGPSLocation()
 
 	gpsLocation.x = distance * cos(toRadians(angle));
 	gpsLocation.y = distance * sin(toRadians(angle));
-
-	//printf("GPS location: x- %.3f, y- %.3f\n", gpsLocation.x, gpsLocation.y);
 }
 
 // find angles between 2 gps coords- in degrees
@@ -187,6 +173,7 @@ double angleFromCoordinates()
     return brng;
 }
 
+// find distance between 2 gps coords
 double distanceFromCoordinates()
 {
 	double R = 6371000; // metres
@@ -210,7 +197,6 @@ double toRadians(double angle)
 {
 	return 3.141592 * angle / 180;
 }
-
 double toDegrees(double angle)
 {
 	return 180 * angle / 3.141592;
@@ -239,7 +225,6 @@ void updateHeight(){
 	// TODO: opt
 	for (i = 0; i < height.length; i++){
 		j = i;
-
 		while (j > 0 && height.value[j] < height.value[j-1]){
 			  tempVal = height.value[j];
 			  tempLoc = height.location[j];
@@ -251,9 +236,9 @@ void updateHeight(){
 			  }
 		}
 	height.median = height.value[height.length/2];
-	for(i = 0 ; i < height.length; i++)
-	{
-		printf("%d: %.3f, ", i, height.value[i]);
-	}
-	printf("\nSonar: curr: %.3f, median: %.3f\n", distanceSonar, height.median);
+//	for(i = 0 ; i < height.length; i++)
+//	{
+//		printf("%d: %.3f, ", i, height.value[i]);
+//	}
+//	printf("\nSonar: curr: %.3f, median: %.3f\n", distanceSonar, height.median);
 }

@@ -2,7 +2,6 @@
  * opticalFlow.cpp
  *
  *  Created on: Mar 16, 2016
- *      Author: Asaf Sarid, Ohad Cohen
  */
 
 /*************************************** Includes ***************************************/
@@ -49,6 +48,7 @@ int outOfROI(int x, int y, vector<Point2f> corners)
 }
 
 /* this function draws the flow on the screen and accumulates the distance the UAV traveled */
+#ifdef VIDEO_ACTIVE
 void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
                     double, const Scalar& color, double fps, vector<Point2f> corners)
 {
@@ -73,7 +73,7 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
     currLocation.x = distPixelx/counter;
     currLocation.y = distPixely/counter;
 }
-
+#else
 void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
 {
     // the distance each pixel traveled per two frames
@@ -95,19 +95,21 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
     currLocation.x = distPixelx/counter;
     currLocation.y = distPixely/counter;
 }
+#endif
 
 /* calculate the location */
-int opticalFlow(int source, char* capturePath, MainWindow &w){
+int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
    end_run = 0;
-
    cout << "Capture from: " << endl << source << endl;
 
-   VideoCapture cap(1); // capture from camera 1
-
-	if( !cap.isOpened() )
+   // capture from camera
+   VideoCapture cap(0);
+    if( !cap.isOpened() )
 		return -1;
-	double fps = cap.get(CV_CAP_PROP_FPS);
+
+    //get fps of video
+//	double fps = cap.get(CV_CAP_PROP_FPS);
 
 	// Set Resolution - The Default Resolution Is 640 x 480
 	cap.set(CV_CAP_PROP_FRAME_WIDTH,WIDTH_RES);
@@ -135,8 +137,7 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
     namedWindow("flow", WINDOW_AUTOSIZE);
 #endif
 
-	double location[2];
-	int frame_counter = 0;
+    double location[2] = {0,0};
 	int i;
     double Xpred, Ypred;
 	double rovX, rovY;		// range of view in both axis
@@ -165,6 +166,7 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 		// undistort the frame using the calibration parameters
 		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
+        // warpPerspective (using euler angles from IMU)
         warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.pitch*(180/PI), 1, 36, processedFrame, warp, corners);
 
 		// lower the process effort by transforming the picture to gray
@@ -172,39 +174,47 @@ int opticalFlow(int source, char* capturePath, MainWindow &w){
 
 		if( !prevgray.empty() )
 		{
+            // calculate flow
 			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
-
             uflow.copyTo(flow);
 
+            // get average
 #ifdef VIDEO_ACTIVE
             drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), fps, corners);
             imshow("flow", prevgray);
-#endif
+#else
             calcAvgOpticalFlow(flow, 16, corners);
+#endif
 
+            // calculate range of view - 2*tan(fov/2)*distance
 #ifdef SONAR_ACTIVE
-            rovX = 2*0.44523*distanceSonar*100; 		// 2 * tan(48/2) * dist(cm)
+            rovX = 2*0.44523*distanceSonar*100; 	// 2 * tan(48/2) * dist(cm)
             rovY = 2*0.32492*distanceSonar*100;		// 2 * tan(36/2) * dist(cm)
             cout << distanceSonar << endl;
 #else
-            double dist=87; 		// distance from surface in cm
+            double dist=87;             // distance from surface in cm
             rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
             rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
 #endif
+
+            // predicted x,y change when rolling / pitching
             Xpred = (eulerFromSensors.pitchspeed*WIDTH_RES) / 48;
             Ypred = (eulerFromSensors.rollspeed*HEIGHT_RES) / 36;
 
+            // calculate final x, y location
 			location[0] += ((currLocation.x - Xpred)/WIDTH_RES)*rovX;
 			location[1] += ((currLocation.y - Ypred)/HEIGHT_RES)*rovY;
 
-			frame_counter++;
-
+            // output to files
 			fprintf(pLocationFile,"%f %f\n", location[0], location[1]);
 			fprintf(pAnglesFile,"%f %f %f\n", eulerFromSensors.pitch*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.yaw*(180/PI));
+
             // Update Plots
             w.UpdatePlot(location[0],location[1]);
-            w.AngleCorrectionUpdate(height.median, currLocation.y, distanceSonar, Ypred);
+            //w.AngleCorrectionUpdate(height.median, currLocation.y, distanceSonar, Ypred);
+            w.AngleCorrectionUpdate(currLocation.x, currLocation.y, Xpred, Ypred);
 		}
+        //break conditions
         if(waitKey(1)>=0)
             break;
         if(end_run)

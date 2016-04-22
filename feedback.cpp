@@ -2,7 +2,6 @@
  * feedback.cpp
  *
  *  Created on: Mar 16, 2016
- *      Author: Asaf Sarid, Ohad Cohen
  */
 
 /* Includes */
@@ -19,7 +18,6 @@
 #include "opticalFlow.h"  //includes also mainwindow.h
 #include "globals.h"
 #include "quadcopter.h"
-#include "locationPlot.h"
 #include <QApplication>
 
 /* Namespaces */
@@ -42,9 +40,10 @@ string space2underscore(string text)
 
 int main(int argc, char** argv)
 {
-    // initialize qt application
+    // initial qt application
     QApplication a(argc, argv);
 
+    //initial flags
     active	= 1;
     init	= 1;
 
@@ -75,7 +74,7 @@ int main(int argc, char** argv)
  //	pthread_create(&controller_thread, NULL, controller, NULL);
 
     // calculate location
-    opticalFlow(1, NULL, w);
+    opticalFlow(1, w);
 
     // stops euler_thread loop
     active = 0;

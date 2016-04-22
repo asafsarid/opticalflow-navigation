@@ -14,7 +14,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -DDEFAULT -DDEFAULT -O2 -std=gnu++0x -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -DDEFAULT -DDEFAULT -std=c++11 -O2 -std=gnu++0x -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore -I. -I. -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++
 QMAKE         = /opt/Qt5.6.0/5.6/gcc_64/bin/qmake
 DEL_FILE      = rm -f
@@ -33,7 +33,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = Feedback1.0.0
-DISTDIR = /home/parallels/Documents/bgu/FinelProject/Feedback/.tmp/Feedback1.0.0
+DISTDIR = /home/osboxes/Feedback/.tmp/Feedback1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1 -Wl,-z,origin -Wl,-rpath,\$$ORIGIN -Wl,-rpath,/opt/Qt5.6.0/5.6/gcc_64/lib
 LIBS          = $(SUBLIBS) -L/usr/local/lib -lopencv_core -lopencv_stitching -lopencv_superres -lopencv_videostab -lopencv_videoio -lopencv_imgcodecs -lopencv_photo -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_shape -lopencv_features2d -lopencv_objdetect -lopencv_calib3d -lopencv_contrib -lopencv_legacy -lopencv_flann -L/opt/Qt5.6.0/5.6/gcc_64/lib -lQt5PrintSupport -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
@@ -51,7 +51,6 @@ OBJECTS_DIR   = ./
 SOURCES       = mainwindow.cpp \
 		att_control.cpp \
 		feedback.cpp \
-		locationPlot.cpp \
 		opticalFlow.cpp \
 		pid.cpp \
 		pos_control.cpp \
@@ -67,7 +66,6 @@ SOURCES       = mainwindow.cpp \
 OBJECTS       = mainwindow.o \
 		att_control.o \
 		feedback.o \
-		locationPlot.o \
 		opticalFlow.o \
 		pid.o \
 		pos_control.o \
@@ -216,9 +214,7 @@ DIST          = /opt/Qt5.6.0/5.6/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/Qt5.6.0/5.6/gcc_64/mkspecs/features/lex.prf \
 		Feedback.pro mainwindow.h \
 		att_control.h \
-		feedback.h \
 		globals.h \
-		locationPlot.h \
 		opticalFlow.h \
 		pid.h \
 		pos_control.h \
@@ -230,7 +226,6 @@ DIST          = /opt/Qt5.6.0/5.6/gcc_64/mkspecs/features/spec_pre.prf \
 		anglecorrection.h mainwindow.cpp \
 		att_control.cpp \
 		feedback.cpp \
-		locationPlot.cpp \
 		opticalFlow.cpp \
 		pid.cpp \
 		pos_control.cpp \
@@ -542,8 +537,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h att_control.h feedback.h globals.h locationPlot.h opticalFlow.h pid.h pos_control.h qcustomplot.h quadcopter.h sensors.h serial_port.h eulerplot.h anglecorrection.h $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.cpp att_control.cpp feedback.cpp locationPlot.cpp opticalFlow.cpp pid.cpp pos_control.cpp qcustomplot.cpp quadcopter.cpp sensors.cpp serial_port.cpp eulerplot.cpp anglecorrection.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h att_control.h globals.h opticalFlow.h pid.h pos_control.h qcustomplot.h quadcopter.h sensors.h serial_port.h eulerplot.h anglecorrection.h $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.cpp att_control.cpp feedback.cpp opticalFlow.cpp pid.cpp pos_control.cpp qcustomplot.cpp quadcopter.cpp sensors.cpp serial_port.cpp eulerplot.cpp anglecorrection.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui eulerplot.ui anglecorrection.ui $(DISTDIR)/
 
 
@@ -1054,7 +1049,7 @@ moc_mainwindow.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/QMainWindow \
 		anglecorrection.h \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtGui/QPen \
 		mainwindow.h
-	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/parallels/Documents/bgu/FinelProject/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore mainwindow.h -o moc_mainwindow.cpp
+	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/osboxes/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore mainwindow.h -o moc_mainwindow.cpp
 
 moc_qcustomplot.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtCore/qobject.h \
@@ -1533,7 +1528,7 @@ moc_qcustomplot.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtCore/QObject \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport/qprintpreviewwidget.h \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport/qtprintsupportversion.h \
 		qcustomplot.h
-	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/parallels/Documents/bgu/FinelProject/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore qcustomplot.h -o moc_qcustomplot.cpp
+	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/osboxes/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore qcustomplot.h -o moc_qcustomplot.cpp
 
 moc_eulerplot.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/QDialog \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/qdialog.h \
@@ -1641,7 +1636,7 @@ moc_eulerplot.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/QDialog \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtGui/qvector2d.h \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtGui/qtouchdevice.h \
 		eulerplot.h
-	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/parallels/Documents/bgu/FinelProject/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore eulerplot.h -o moc_eulerplot.cpp
+	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/osboxes/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore eulerplot.h -o moc_eulerplot.cpp
 
 moc_anglecorrection.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/QDialog \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/qdialog.h \
@@ -1751,7 +1746,7 @@ moc_anglecorrection.cpp: /opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/QDialog \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtGui/QPen \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtGui/qpen.h \
 		anglecorrection.h
-	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/parallels/Documents/bgu/FinelProject/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore anglecorrection.h -o moc_anglecorrection.cpp
+	/opt/Qt5.6.0/5.6/gcc_64/bin/moc $(DEFINES) -I/opt/Qt5.6.0/5.6/gcc_64/mkspecs/linux-g++ -I/home/osboxes/Feedback -I/usr/local/include/opencv -I/opt/Qt5.6.0/5.6/gcc_64/include -I/opt/Qt5.6.0/5.6/gcc_64/include/QtPrintSupport -I/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets -I/opt/Qt5.6.0/5.6/gcc_64/include/QtGui -I/opt/Qt5.6.0/5.6/gcc_64/include/QtCore anglecorrection.h -o moc_anglecorrection.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -4326,13 +4321,8 @@ feedback.o: feedback.cpp sensors.h \
 		att_control.h \
 		pid.h \
 		pos_control.h \
-		locationPlot.h \
 		/opt/Qt5.6.0/5.6/gcc_64/include/QtWidgets/QApplication
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o feedback.o feedback.cpp
-
-locationPlot.o: locationPlot.cpp locationPlot.h \
-		globals.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o locationPlot.o locationPlot.cpp
 
 opticalFlow.o: opticalFlow.cpp perspective.cpp \
 		globals.h \

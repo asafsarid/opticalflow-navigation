@@ -2,7 +2,6 @@
  * perspective.cpp
  *
  *  Created on: Jan 18, 2016
- *      Author: Asaf Sarid, Ohad Cohen
  */
 /* Includes */
 // General
@@ -22,9 +21,6 @@ using namespace std;
 
 //static double rad2Deg(double rad){return rad*(180/M_PI);}//Convert radians to degrees
 static double deg2Rad(double deg){return deg*(M_PI/180);}//Convert degrees to radians
-
-
-
 
 void warpMatrix(Size   sz,
                 double theta,
@@ -114,6 +110,7 @@ void warpMatrix(Size   sz,
         corners->push_back(ptsOutPt2f[3]);//Push Bottom Left corner
     }
 }
+
 
 void warpImage(const Mat &src,
                double    theta,

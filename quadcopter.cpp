@@ -2,7 +2,6 @@
  * quadcopter.cpp
  *
  *  Created on: 22 Mar 2016
- *      Author: osboxes
  */
 
 
@@ -17,18 +16,15 @@ void *controller(void *control) {
 	//Initialize
 	Position* position = new Position();
 	Attitude* attitude = new Attitude();
-	// Get X,Y From Optical Flow
 	double y_mes;
 	double x_mes;
-	// Get Z From Sonar Sensor
 	double z_mes;
-	// Get Euler Angles From IMU
 	double the_mes;
 	double phi_mes;
 	double psi_mes;
 	double mc1,mc2,mc3,mc4;
 
-	for(;;){
+    while(active){
 		// Get X,Y From Optical Flow
 		x_mes = currLocation.x;
 		y_mes = currLocation.y;

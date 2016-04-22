@@ -51,7 +51,7 @@ void AngleCorrection::MakePlot()
     //Set Labels and Ranges
     ui->correctXPlot->xAxis->setLabel("Time (Sec)");
     ui->correctXPlot->yAxis->setLabel("Distance X (cm)");
-    ui->correctXPlot->yAxis->setRange(0, 1.8);
+    ui->correctXPlot->yAxis->setRange(-30, 30);
     ui->correctYPlot->xAxis->setLabel("Time (Sec)");
     ui->correctYPlot->yAxis->setLabel("Distance Y (cm)");
     ui->correctYPlot->yAxis->setRange(-30, 30);
@@ -75,6 +75,7 @@ void AngleCorrection::UpdatePlot(double deltaX, double deltaY, double predX, dou
     ui->correctXPlot->graph(1)->addData(time,predX);
     ui->correctYPlot->graph(1)->addData(time,predY);
 
+    //Make plot move with time (100 samples)
     ui->correctXPlot->xAxis->setRange(time+0.25, 100, Qt::AlignRight);
     ui->correctYPlot->xAxis->setRange(time+0.25, 100, Qt::AlignRight);
 

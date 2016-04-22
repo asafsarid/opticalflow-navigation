@@ -10,6 +10,6 @@
 
 #include "mainwindow.h"
 
-int opticalFlow(int source, char* capturePath, MainWindow &w);
+int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w);
 
 #endif /* OPTICALFLOW_H_ */

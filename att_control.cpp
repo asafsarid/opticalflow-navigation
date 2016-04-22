@@ -3,7 +3,6 @@
 
  *
  *  Created on: 22 Mar 2016
- *      Author: osboxes
  */
 
 #include <iostream>
@@ -17,11 +16,9 @@
 
 using namespace std;
 
-
-
-
 Attitude::Attitude()
 {
+    //euler and z PIDs
     phi_pid = new PID(0.5, 1, -1, Kp, Kd, Ki);
     the_pid = new PID(0.5, 1, -1, Kp, Kd, Ki);
     psi_pid = new PID(0.5, 1, -1, Kp, Kd, Ki);
@@ -33,7 +30,7 @@ Attitude::Attitude()
     z_correct = 0;
 }
 
-
+// get correction from desired and measured
 void Attitude::calculate(double phi_des, double phi_mes, double the_des, double the_mes,
 		double psi_des, double psi_mes, double z_des, double z_mes)
 {

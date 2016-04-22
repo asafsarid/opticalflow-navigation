@@ -34,8 +34,8 @@ typedef struct{
 
 typedef struct{
 	double value[13];
-	int32_t location[13];
-	int32_t length = 13;
+    int32_t location[13];
+    int32_t length = 13;
 	double median;
 }heightMedian;
 
