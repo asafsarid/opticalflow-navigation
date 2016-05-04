@@ -18,6 +18,8 @@ public:
     void UpdatePlot(double x, double y);
 
     void AngleCorrectionUpdate(double deltaX, double deltaY, double predX, double predY);
+
+    void selectionChanged();
 private slots:
     void MakePlot();
     void on_close_button_clicked();
@@ -25,6 +27,8 @@ private slots:
     void on_euler_button_clicked();
 
     void on_optical_button_clicked();
+
+    void mouseWheel();
 
     void on_clear_button_clicked();
 
