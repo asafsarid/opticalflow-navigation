@@ -57,11 +57,12 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
 	// count the number of pixels
 	int counter = 0;
 	// draw the optical flow and sum the distance that all the pixels have traveled
-    for(int y = 0; y < cflowmap.rows; y += step)
-        for(int x = 0; x < cflowmap.cols; x += step)
+
+	for(int y = (int)(0.1*cflowmap.rows); y < (int)(cflowmap.rows*0.9); y += step)
+        for(int x = (int)(0.1*cflowmap.cols); x < (int)(cflowmap.cols*0.9); x += step)
         {
-        	if(outOfROI(x,y, corners))
-        		continue;
+        	//if(outOfROI(x,y, corners))
+        	//	continue;
             const Point2f& fxy = flow.at<Point2f>(y, x);
             line(cflowmap, Point(x,y), Point(cvRound(x+fxy.x), cvRound(y+fxy.y)), color);
             circle(cflowmap, Point(x,y), 2, color, -1);
@@ -104,12 +105,12 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
    cout << "Capture from: " << endl << source << endl;
 
    // capture from camera
-   VideoCapture cap(0);
+   VideoCapture cap("./basic2.avi");
     if( !cap.isOpened() )
 		return -1;
 
     //get fps of video
-//	double fps = cap.get(CV_CAP_PROP_FPS);
+	double fps = cap.get(CV_CAP_PROP_FPS);
 
 	// Set Resolution - The Default Resolution Is 640 x 480
 	cap.set(CV_CAP_PROP_FRAME_WIDTH,WIDTH_RES);
@@ -167,15 +168,15 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
         // warpPerspective (using euler angles from IMU)
-        warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.pitch*(180/PI), 1, 36, processedFrame, warp, corners);
+        //warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.pitch*(180/PI), 1, 36, processedFrame, warp, corners);
 
 		// lower the process effort by transforming the picture to gray
-        cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
+        cvtColor(undistortFrame, gray, COLOR_BGR2GRAY);
 
 		if( !prevgray.empty() )
 		{
             // calculate flow
-			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
+			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 15/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
             uflow.copyTo(flow);
 
             // get average
