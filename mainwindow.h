@@ -28,6 +28,8 @@ private slots:
 
     void on_clear_button_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     QCPCurve *newCurve;
     EulerPlot *ePlot;

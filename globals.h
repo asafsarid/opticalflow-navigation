@@ -45,6 +45,7 @@ typedef struct{
 
 // location of the UAV
 extern locationStruct currLocation;
+extern locationStruct lastFlowStep;
 extern locationStruct gpsLocation;
 // struct of Euler angles
 extern euler_angles eulerFromSensors;

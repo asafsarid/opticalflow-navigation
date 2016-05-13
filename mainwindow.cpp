@@ -96,3 +96,9 @@ void MainWindow::on_clear_button_clicked()
 {
     this->newCurve->clearData();
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+    currLocation.x = 0;
+    currLocation.y = 0;
+}
