@@ -19,20 +19,20 @@ public:
 
     void AngleCorrectionUpdate(double deltaX, double deltaY, double predX, double predY);
 
-    void selectionChanged();
 private slots:
     void MakePlot();
+
     void on_close_button_clicked();
+
+    void on_save_button_clicked();
 
     void on_euler_button_clicked();
 
     void on_optical_button_clicked();
 
-    void mouseWheel();
-
     void on_clear_button_clicked();
 
-    void on_pushButton_clicked();
+    void on_reset_button_clicked();
 
 private:
     QCPCurve *newCurve;

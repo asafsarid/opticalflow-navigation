@@ -240,7 +240,7 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
         cvtColor(origFrame, processedFrame, COLOR_BGR2GRAY);
 
-        cout << "Yaw = " << eulerFromSensors.yaw*(180/M_PI) << endl;
+//        cout << "Yaw = " << eulerFromSensors.yaw*(180/M_PI) << endl;
 
 //        rotateFrame(origFrame, processedFrame, cameraMatrix, eulerFromSensors.roll, 0, 0);
 
@@ -249,13 +249,13 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
 
 		// undistort the frame using the calibration parameters
-//		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
+//        cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
 //        // warpPerspective (using euler angles from IMU)
 //        warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.pitch*(180/PI), 1, 36, processedFrame, warp, corners);
 
 		// lower the process effort by transforming the picture to gray
-
+//        cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
 
 		if( !prevgray.empty() )
 		{
@@ -287,8 +287,8 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
             Ypred = (eulerFromSensors.rollspeed*HEIGHT_RES) / 36;
 
             // calculate final x, y location
-            currLocation.x -= ((lastFlowStep.x + Xpred)/WIDTH_RES)*rovX;
-            currLocation.y += ((lastFlowStep.y - Ypred)/HEIGHT_RES)*rovY;
+            currLocation.x -= ((lastFlowStep.x/* + Xpred*/)/WIDTH_RES)*rovX;
+            currLocation.y += ((lastFlowStep.y/* - Ypred*/)/HEIGHT_RES)*rovY;
 
             // output to files
             fprintf(pLocationFile,"%f %f\n", currLocation.x, currLocation.y);
@@ -296,8 +296,11 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
             // Update Plots
             w.UpdatePlot(currLocation.x,currLocation.y);
-            //w.AngleCorrectionUpdate(height.median, currLocation.y, distanceSonar, Ypred);
-            w.AngleCorrectionUpdate(lastFlowStep.x, lastFlowStep.y, Xpred, Ypred);
+            w.AngleCorrectionUpdate(eulerFromSensors.roll*(180/M_PI), eulerFromSensors.pitch*(180/M_PI), 0, 0);
+
+            cout << "Roll: " << eulerFromSensors.roll*(180/M_PI) << endl;
+            cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
+//            w.AngleCorrectionUpdate(lastFlowStep.x, lastFlowStep.y, Xpred, Ypred);
 		}
         //break conditions
         if(waitKey(1)>=0)
