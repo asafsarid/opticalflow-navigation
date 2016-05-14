@@ -100,8 +100,9 @@ void *updateSensors(void *sensorsPort)
 				mavlink_msg_attitude_decode(&newMsg, &attitudeMsg);
 				eulerFromSensors.pitch 	= attitudeMsg.pitch;
 				eulerFromSensors.roll 	= attitudeMsg.roll;
-				eulerFromSensors.yaw 	= attitudeMsg.yaw;
-                eulerFromSensors.pitchspeed 	= attitudeMsg.pitchspeed;
+				// transfer the yaw to our convention: from positive x axis CCW is positive
+				eulerFromSensors.yaw 	= (-1) * attitudeMsg.yaw;
+                eulerFromSensors.pitchspeed = attitudeMsg.pitchspeed;
                 eulerFromSensors.rollspeed 	= attitudeMsg.rollspeed;
                 eulerFromSensors.yawspeed 	= attitudeMsg.yawspeed;
 				break;

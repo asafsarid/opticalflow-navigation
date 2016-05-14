@@ -71,8 +71,10 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
             counter++;
         }
     // update the global variable - location of the UAV
-    lastFlowStep.x = distPixelx/counter;
-    lastFlowStep.y = distPixely/counter;
+    locationStruct notUpdatedFlowStep;
+    notUpdatedFlowStep.x = distPixelx/counter;
+    notUpdatedFlowStep.y = distPixely/counter;
+    locationStruct lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
 }
 #else
 void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
@@ -93,8 +95,10 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
             counter++;
         }
     // update the global variable - location of the UAV
-    lastFlowStep.x = distPixelx/counter;
-    lastFlowStep.y = distPixely/counter;
+    locationStruct notUpdatedFlowStep;
+    notUpdatedFlowStep.x = distPixelx/counter;
+    notUpdatedFlowStep.y = distPixely/counter;
+    locationStruct lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
 }
 #endif
 
@@ -167,7 +171,16 @@ void rotateFrame(const Mat &input, Mat &output, Mat &A , double roll, double pit
     warpPerspective(input, output, trans, input.size());
 }
 
+/* this function finds the right location according yaw angle*/
+locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
+	float yYaw = eulerFromSensors.yaw + 90;
+	locationStruct outputLocation;
 
+	outputLocation.x = lastFlowStep.x * cos(eulerFromSensors.yaw) + lastFlowStep.y * cos(yYaw);
+	outputLocation.y = lastFlowStep.x * sin(eulerFromSensors.yaw) + lastFlowStep.y * sin(yYaw);
+
+	return outputLocation;
+}
 
 /* calculate the location */
 int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
