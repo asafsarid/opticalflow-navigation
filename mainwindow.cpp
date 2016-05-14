@@ -114,70 +114,8 @@ void MainWindow::on_clear_button_clicked()
     this->newCurve->clearData();
 }
 
-void MainWindow::mouseWheel()
+void MainWindow::on_pushButton_clicked()
 {
-  // if an axis is selected, only allow the direction of that axis to be zoomed
-  // if no axis is selected, both directions may be zoomed
-
-  if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis)){
-    ui->customPlot->axisRect()->setRangeZoomAxes(ui->customPlot->xAxis,ui->customPlot->yAxis);
-    ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->xAxis->orientation());
-  }
-  else if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis)){
-    ui->customPlot->axisRect()->setRangeZoomAxes(ui->customPlot->xAxis,ui->customPlot->yAxis);
-    ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->yAxis->orientation());
-  }
-  else if (ui->customPlot->xAxis2->selectedParts().testFlag(QCPAxis::spAxis)){
-    ui->customPlot->axisRect()->setRangeZoomAxes(ui->customPlot->xAxis2,ui->customPlot->yAxis2);
-    ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->xAxis2->orientation());
-  }
-  else if (ui->customPlot->yAxis2->selectedParts().testFlag(QCPAxis::spAxis)){
-    ui->customPlot->axisRect()->setRangeZoomAxes(ui->customPlot->xAxis2,ui->customPlot->yAxis2);
-    ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->yAxis2->orientation());
-  }
-  else
-    ui->customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-}
-
-void MainWindow::selectionChanged()
-{
-  /*
-   normally, axis base line, axis tick labels and axis labels are selectable separately, but we want
-   the user only to be able to select the axis as a whole, so we tie the selected states of the tick labels
-   and the axis base line together. However, the axis label shall be selectable individually.
-
-   The selection state of the left and right axes shall be synchronized as well as the state of the
-   bottom and top axes.
-
-   Further, we want to synchronize the selection of the graphs with the selection state of the respective
-   legend item belonging to that graph. So the user can select a graph by either clicking on the graph itself
-   or on its legend item.
-  */
-
-  // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->customPlot->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->customPlot->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->customPlot->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-  // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->customPlot->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->customPlot->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->customPlot->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->customPlot->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-
-  // synchronize selection of graphs with selection of corresponding legend items:
-  for (int i=0; i<ui->customPlot->graphCount(); ++i)
-  {
-    QCPGraph *graph = ui->customPlot->graph(i);
-    QCPPlottableLegendItem *item = ui->customPlot->legend->itemWithPlottable(graph);
-    if (item->selected() || graph->selected())
-    {
-      item->setSelected(true);
-      graph->setSelected(true);
-    }
-  }
+    currLocation.x = 0;
+    currLocation.y = 0;
 }
