@@ -48,6 +48,17 @@ int outOfROI(int x, int y, vector<Point2f> corners)
 	return !oddNodes;
 }
 
+/* this function finds the right location according yaw angle*/
+locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
+    float yYaw = eulerFromSensors.yaw - 90;
+    locationStruct outputLocation;
+
+    outputLocation.x = lastFlowStep.x * cos(eulerFromSensors.yaw) + lastFlowStep.y * cos(yYaw);
+    outputLocation.y = -(lastFlowStep.x * sin(eulerFromSensors.yaw) + lastFlowStep.y * sin(yYaw));
+
+    return outputLocation;
+}
+
 /* this function draws the flow on the screen and accumulates the distance the UAV traveled */
 #ifdef VIDEO_ACTIVE
 void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
@@ -71,8 +82,15 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
             counter++;
         }
     // update the global variable - location of the UAV
+#ifdef YAW_ACTIVE
+    locationStruct notUpdatedFlowStep;
+    notUpdatedFlowStep.x = distPixelx/counter;
+    notUpdatedFlowStep.y = distPixely/counter;
+    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
+#else
     lastFlowStep.x = distPixelx/counter;
     lastFlowStep.y = distPixely/counter;
+#endif
 }
 #else
 void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
@@ -93,8 +111,15 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
             counter++;
         }
     // update the global variable - location of the UAV
+#ifdef YAW_ACTIVE
+    locationStruct notUpdatedFlowStep;
+    notUpdatedFlowStep.x = distPixelx/counter;
+    notUpdatedFlowStep.y = distPixely/counter;
+    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
+#else
     lastFlowStep.x = distPixelx/counter;
     lastFlowStep.y = distPixely/counter;
+#endif
 }
 #endif
 
@@ -166,8 +191,6 @@ void rotateFrame(const Mat &input, Mat &output, Mat &A , double roll, double pit
 
     warpPerspective(input, output, trans, input.size());
 }
-
-
 
 /* calculate the location */
 int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
@@ -273,13 +296,14 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
             // calculate range of view - 2*tan(fov/2)*distance
 #ifdef SONAR_ACTIVE
-            rovX = 2*0.44523*distanceSonar*100; 	// 2 * tan(48/2) * dist(cm)
-            rovY = 2*0.32492*distanceSonar*100;		// 2 * tan(36/2) * dist(cm)
-//            cout << distanceSonar << endl;
+            rovX = 2*0.44523*height.median*100; 	// 2 * tan(48/2) * dist(cm)
+            rovY = 2*0.32492*height.median*100;		// 2 * tan(36/2) * dist(cm)
+            cout << "Sonar Raw:    " << distanceSonar << endl;
+            cout << "Sonar Median: " << height.median << endl;
 #else
             double dist=87;             // distance from surface in cm
-            rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
-            rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
+            rovX = 2*0.44523*dist*cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch); 		// 2 * tan(48/2) * dist
+            rovY = 2*0.32492*dist*cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch);		// 2 * tan(36/2) * dist
 #endif
 
             // predicted x,y change when rolling / pitching
@@ -296,11 +320,11 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
             // Update Plots
             w.UpdatePlot(currLocation.x,currLocation.y);
-            w.AngleCorrectionUpdate(eulerFromSensors.roll*(180/M_PI), eulerFromSensors.pitch*(180/M_PI), 0, 0);
+//            w.AngleCorrectionUpdate(eulerFromSensors.roll*(180/M_PI), eulerFromSensors.pitch*(180/M_PI), 0, 0);
 
-            cout << "Roll: " << eulerFromSensors.roll*(180/M_PI) << endl;
-            cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
-//            w.AngleCorrectionUpdate(lastFlowStep.x, lastFlowStep.y, Xpred, Ypred);
+//            cout << "Roll: " << eulerFromSensors.roll*(180/M_PI) << endl;
+//            cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
+            w.AngleCorrectionUpdate(lastFlowStep.x, lastFlowStep.y, Xpred, Ypred);
 		}
         //break conditions
         if(waitKey(1)>=0)

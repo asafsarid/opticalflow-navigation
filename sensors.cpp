@@ -100,7 +100,7 @@ void *updateSensors(void *sensorsPort)
 				mavlink_msg_attitude_decode(&newMsg, &attitudeMsg);
 				eulerFromSensors.pitch 	= attitudeMsg.pitch;
 				eulerFromSensors.roll 	= attitudeMsg.roll;
-				eulerFromSensors.yaw 	= attitudeMsg.yaw;
+                eulerFromSensors.yaw 	= (-1) * attitudeMsg.yaw;
                 eulerFromSensors.pitchspeed 	= attitudeMsg.pitchspeed;
                 eulerFromSensors.rollspeed 	= attitudeMsg.rollspeed;
                 eulerFromSensors.yawspeed 	= attitudeMsg.yawspeed;
