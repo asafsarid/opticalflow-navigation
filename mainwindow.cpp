@@ -39,19 +39,6 @@ void MainWindow::MakePlot()
     ui->customPlot->xAxis->setRange(-100, 100);
     ui->customPlot->yAxis->setRange(-100, 100);
 
-    ui->customPlot->xAxis2->setVisible(true);
-    ui->customPlot->yAxis2->setVisible(true);
-    ui->customPlot->xAxis2->setLabel("miau");
-    ui->customPlot->yAxis2->setLabel("miau2");
-    ui->customPlot->xAxis2->setRange(-70,70);
-    ui->customPlot->yAxis2->setRange(-1, 1);
-
-    ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes | QCP::iSelectLegend | QCP::iSelectPlottables);
-    //ui->customPlot->axisRect()->setupFullAxesBox();
-
-    //connect(ui->customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
-    connect(ui->customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel()));
-
     ui->customPlot->replot();
 
 }
@@ -90,9 +77,13 @@ void MainWindow::SavePlot()
 // Save and Close (will exit program)
 void MainWindow::on_close_button_clicked()
 {
-    this->SavePlot();
     this->close();
     qApp->exit();
+}
+
+void MainWindow::on_save_button_clicked()
+{
+    this->SavePlot();
 }
 
 // Opens Euler Plot
@@ -114,7 +105,7 @@ void MainWindow::on_clear_button_clicked()
     this->newCurve->clearData();
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_reset_button_clicked()
 {
     currLocation.x = 0;
     currLocation.y = 0;

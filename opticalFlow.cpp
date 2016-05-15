@@ -8,6 +8,7 @@
 // General
 #include <iostream>
 #include <pthread.h>
+#include <time.h>
 // OpenCV
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -17,6 +18,7 @@
 #include "perspective.cpp"
 #include "globals.h"
 #include "mainwindow.h"
+
 /*************************************** Namespaces ***************************************/
 using namespace cv;
 using namespace std;
@@ -44,8 +46,18 @@ int outOfROI(int x, int y, vector<Point2f> corners)
 	  }
 	  j=i;
 	}
-
 	return !oddNodes;
+}
+
+/* this function finds the right location according yaw angle*/
+locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
+    float yYaw = eulerFromSensors.yaw - M_PI/2;
+    locationStruct outputLocation;
+
+    outputLocation.x = lastFlowStep.x * cos(eulerFromSensors.yaw) + lastFlowStep.y * cos(yYaw);
+    outputLocation.y = -(lastFlowStep.x * sin(eulerFromSensors.yaw) + lastFlowStep.y * sin(yYaw));
+
+    return outputLocation;
 }
 
 /* this function draws the flow on the screen and accumulates the distance the UAV traveled */
@@ -71,8 +83,15 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
             counter++;
         }
     // update the global variable - location of the UAV
+#ifdef YAW_ACTIVE
+    locationStruct notUpdatedFlowStep;
+    notUpdatedFlowStep.x = distPixelx/counter;
+    notUpdatedFlowStep.y = distPixely/counter;
+    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
+#else
     lastFlowStep.x = distPixelx/counter;
     lastFlowStep.y = distPixely/counter;
+#endif
 }
 #else
 void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
@@ -93,8 +112,15 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
             counter++;
         }
     // update the global variable - location of the UAV
+#ifdef YAW_ACTIVE
+    locationStruct notUpdatedFlowStep;
+    notUpdatedFlowStep.x = distPixelx/counter;
+    notUpdatedFlowStep.y = distPixely/counter;
+    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
+#else
     lastFlowStep.x = distPixelx/counter;
     lastFlowStep.y = distPixely/counter;
+#endif
 }
 #endif
 
@@ -167,10 +193,11 @@ void rotateFrame(const Mat &input, Mat &output, Mat &A , double roll, double pit
     warpPerspective(input, output, trans, input.size());
 }
 
-
-
 /* calculate the location */
 int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
+
+    int tempX = 0;
+    int tempY = 0;
 
    end_run = 0;
    cout << "Capture from: " << endl << source << endl;
@@ -240,7 +267,7 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
         cvtColor(origFrame, processedFrame, COLOR_BGR2GRAY);
 
-        cout << "Yaw = " << eulerFromSensors.yaw*(180/M_PI) << endl;
+//        cout << "Yaw = " << eulerFromSensors.yaw*(180/M_PI) << endl;
 
 //        rotateFrame(origFrame, processedFrame, cameraMatrix, eulerFromSensors.roll, 0, 0);
 
@@ -249,13 +276,13 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
 
 		// undistort the frame using the calibration parameters
-//		cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
+//        cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
 //        // warpPerspective (using euler angles from IMU)
 //        warpImage(undistortFrame, eulerFromSensors.yaw*(180/PI), eulerFromSensors.roll*(180/PI), eulerFromSensors.pitch*(180/PI), 1, 36, processedFrame, warp, corners);
 
 		// lower the process effort by transforming the picture to gray
-
+//        cvtColor(processedFrame, gray, COLOR_BGR2GRAY);
 
 		if( !prevgray.empty() )
 		{
@@ -273,22 +300,48 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
             // calculate range of view - 2*tan(fov/2)*distance
 #ifdef SONAR_ACTIVE
-            rovX = 2*0.44523*distanceSonar*100; 	// 2 * tan(48/2) * dist(cm)
-            rovY = 2*0.32492*distanceSonar*100;		// 2 * tan(36/2) * dist(cm)
-//            cout << distanceSonar << endl;
+            rovX = 2*0.44523*height.median*100; 	// 2 * tan(48/2) * dist(cm)
+            rovY = 2*0.32492*height.median*100;		// 2 * tan(36/2) * dist(cm)
+            cout << "Sonar Raw:    " << distanceSonar << endl;
+            cout << "Sonar Median: " << height.median << endl;
 #else
-            double dist=87;             // distance from surface in cm
+            double dist=87/(cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch));             // distance from surface in cm
+//            cout << "Distance: " << dist << endl;
             rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
             rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
 #endif
 
-            // predicted x,y change when rolling / pitching
-            Xpred = (eulerFromSensors.pitchspeed*WIDTH_RES) / 48;
-            Ypred = (eulerFromSensors.rollspeed*HEIGHT_RES) / 36;
+            if(eulerSpeedChanged.load())
+            {
+                eulerSpeedChanged.store(false);
+                // predicted x,y change when rolling / pitching
+                Xpred = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
+                Ypred = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
+                cout << "Pitch: " << eulerFromSensors.pitch << endl;
+                cout << "PrevPitch: " << prevEulerFromSensors.pitch << endl;
 
-            // calculate final x, y location
-            currLocation.x -= ((lastFlowStep.x + Xpred)/WIDTH_RES)*rovX;
-            currLocation.y += ((lastFlowStep.y - Ypred)/HEIGHT_RES)*rovY;
+                cout << "PitchSpeed: " << (eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI) << endl;
+                cout << "RollSpeed: " << (eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI) << endl;
+                // calculate final x, y location
+                currLocation.x -= ((lastFlowStep.x + Xpred)/WIDTH_RES)*rovX;
+                currLocation.y += ((lastFlowStep.y - Ypred)/HEIGHT_RES)*rovY;
+
+                tempX += lastFlowStep.x;
+                tempY += lastFlowStep.y;
+
+                w.AngleCorrectionUpdate(tempX, tempY, Xpred, Ypred);
+
+                tempX = 0;
+                tempY = 0;
+            }
+            else{
+                // calculate final x, y location
+                currLocation.x -= (lastFlowStep.x/WIDTH_RES)*rovX;
+                currLocation.y += (lastFlowStep.y/HEIGHT_RES)*rovY;
+//                cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
+                tempX += lastFlowStep.x;
+                tempY += lastFlowStep.y;
+            }
 
             // output to files
             fprintf(pLocationFile,"%f %f\n", currLocation.x, currLocation.y);
@@ -296,8 +349,11 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
             // Update Plots
             w.UpdatePlot(currLocation.x,currLocation.y);
-            //w.AngleCorrectionUpdate(height.median, currLocation.y, distanceSonar, Ypred);
-            w.AngleCorrectionUpdate(lastFlowStep.x, lastFlowStep.y, Xpred, Ypred);
+//            w.AngleCorrectionUpdate(eulerFromSensors.roll*(180/M_PI), eulerFromSensors.pitch*(180/M_PI), 0, 0);
+
+//            cout << "Roll: " << eulerFromSensors.roll*(180/M_PI) << endl;
+//            cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
+
 		}
         //break conditions
         if(waitKey(1)>=0)

@@ -28,6 +28,8 @@ gpsCoords currGPSCoords;
 gpsCoords initGPSCoords;
 heightMedian height;
 euler_angles eulerFromSensors;
+euler_angles prevEulerFromSensors;
+atomic<bool> eulerSpeedChanged;
 float distanceSonar;
 int active;
 
@@ -98,12 +100,22 @@ void *updateSensors(void *sensorsPort)
 			// 4.1.2.1. Euler angles
 			case MAVLINK_MSG_ID_ATTITUDE:
 				mavlink_msg_attitude_decode(&newMsg, &attitudeMsg);
-				eulerFromSensors.pitch 	= attitudeMsg.pitch;
-				eulerFromSensors.roll 	= attitudeMsg.roll;
-				eulerFromSensors.yaw 	= attitudeMsg.yaw;
-                eulerFromSensors.pitchspeed 	= attitudeMsg.pitchspeed;
-                eulerFromSensors.rollspeed 	= attitudeMsg.rollspeed;
-                eulerFromSensors.yawspeed 	= attitudeMsg.yawspeed;
+                if(attitudeMsg.pitchspeed != eulerFromSensors.pitchspeed ||
+                   attitudeMsg.rollspeed != eulerFromSensors.rollspeed)
+                {
+                    prevEulerFromSensors.pitchspeed     = eulerFromSensors.pitchspeed;
+                    prevEulerFromSensors.rollspeed      = eulerFromSensors.rollspeed;
+                    prevEulerFromSensors.pitch          = eulerFromSensors.pitch;
+                    prevEulerFromSensors.roll           = eulerFromSensors.roll;
+
+                    eulerFromSensors.pitchspeed         = attitudeMsg.pitchspeed;
+                    eulerFromSensors.rollspeed          = attitudeMsg.rollspeed;
+                    eulerSpeedChanged.store(true);
+                }
+                    eulerFromSensors.pitch              = attitudeMsg.pitch;
+                    eulerFromSensors.roll               = attitudeMsg.roll;
+                    eulerFromSensors.yaw                = (-1) * attitudeMsg.yaw;
+
 				break;
 			// 4.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:

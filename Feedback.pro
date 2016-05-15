@@ -21,9 +21,12 @@ isEmpty(VIDEO){
 isEmpty(SONAR){
   SONAR = DEFAULT
 }
+isEmpty(YAW){
+  YAW = DEFAULT
+}
 
 QMAKE_CLEAN += ./Feedback
-QMAKE_CXXFLAGS += -D$${SONAR} -D$${VIDEO} -std=c++11
+QMAKE_CXXFLAGS += -D$${SONAR} -D$${VIDEO} -D$${YAW} -std=c++11
 
 SOURCES +=\
         mainwindow.cpp \

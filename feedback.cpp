@@ -55,14 +55,14 @@ int main(int argc, char** argv)
     currentTime = space2underscore(tempTime);
 
     // open sensors port
-//    Serial_Port* p_sensorsPort = open_port();
+    Serial_Port* p_sensorsPort = open_port();
 
     // create and run thread of updating the angles from IMU
-//    pthread_t euler_thread;
-//    pthread_create(&euler_thread, NULL, updateSensors, p_sensorsPort);
+    pthread_t euler_thread;
+    pthread_create(&euler_thread, NULL, updateSensors, p_sensorsPort);
 
     // delay - waiting for angles and global variables to be stable
-//    sleep(10);
+    sleep(10);
     init = 0;
 
     // start qt window
@@ -74,13 +74,13 @@ int main(int argc, char** argv)
  //	pthread_create(&controller_thread, NULL, controller, NULL);
 
     // calculate location
-//    opticalFlow(1, w);
+    opticalFlow(1, w);
 
     // stops euler_thread loop
     active = 0;
 
     // close sensors port
-//    close_port(p_sensorsPort);
+    close_port(p_sensorsPort);
 
     return a.exec();
 }
