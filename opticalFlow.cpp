@@ -8,6 +8,7 @@
 // General
 #include <iostream>
 #include <pthread.h>
+#include <time.h>
 // OpenCV
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -17,6 +18,7 @@
 #include "perspective.cpp"
 #include "globals.h"
 #include "mainwindow.h"
+
 /*************************************** Namespaces ***************************************/
 using namespace cv;
 using namespace std;
@@ -44,13 +46,12 @@ int outOfROI(int x, int y, vector<Point2f> corners)
 	  }
 	  j=i;
 	}
-
 	return !oddNodes;
 }
 
 /* this function finds the right location according yaw angle*/
 locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
-    float yYaw = eulerFromSensors.yaw - 90;
+    float yYaw = eulerFromSensors.yaw - M_PI/2;
     locationStruct outputLocation;
 
     outputLocation.x = lastFlowStep.x * cos(eulerFromSensors.yaw) + lastFlowStep.y * cos(yYaw);
@@ -195,6 +196,9 @@ void rotateFrame(const Mat &input, Mat &output, Mat &A , double roll, double pit
 /* calculate the location */
 int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
+    int tempX = 0;
+    int tempY = 0;
+
    end_run = 0;
    cout << "Capture from: " << endl << source << endl;
 
@@ -301,18 +305,43 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
             cout << "Sonar Raw:    " << distanceSonar << endl;
             cout << "Sonar Median: " << height.median << endl;
 #else
-            double dist=87;             // distance from surface in cm
-            rovX = 2*0.44523*dist*cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch); 		// 2 * tan(48/2) * dist
-            rovY = 2*0.32492*dist*cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch);		// 2 * tan(36/2) * dist
+            double dist=87/(cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch));             // distance from surface in cm
+//            cout << "Distance: " << dist << endl;
+            rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
+            rovY = 2*0.32492*dist;		// 2 * tan(36/2) * dist
 #endif
 
-            // predicted x,y change when rolling / pitching
-            Xpred = (eulerFromSensors.pitchspeed*WIDTH_RES) / 48;
-            Ypred = (eulerFromSensors.rollspeed*HEIGHT_RES) / 36;
+            if(eulerSpeedChanged.load())
+            {
+                eulerSpeedChanged.store(false);
+                // predicted x,y change when rolling / pitching
+                Xpred = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
+                Ypred = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
+                cout << "Pitch: " << eulerFromSensors.pitch << endl;
+                cout << "PrevPitch: " << prevEulerFromSensors.pitch << endl;
 
-            // calculate final x, y location
-            currLocation.x -= ((lastFlowStep.x/* + Xpred*/)/WIDTH_RES)*rovX;
-            currLocation.y += ((lastFlowStep.y/* - Ypred*/)/HEIGHT_RES)*rovY;
+                cout << "PitchSpeed: " << (eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI) << endl;
+                cout << "RollSpeed: " << (eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI) << endl;
+                // calculate final x, y location
+                currLocation.x -= ((lastFlowStep.x + Xpred)/WIDTH_RES)*rovX;
+                currLocation.y += ((lastFlowStep.y - Ypred)/HEIGHT_RES)*rovY;
+
+                tempX += lastFlowStep.x;
+                tempY += lastFlowStep.y;
+
+                w.AngleCorrectionUpdate(tempX, tempY, Xpred, Ypred);
+
+                tempX = 0;
+                tempY = 0;
+            }
+            else{
+                // calculate final x, y location
+                currLocation.x -= (lastFlowStep.x/WIDTH_RES)*rovX;
+                currLocation.y += (lastFlowStep.y/HEIGHT_RES)*rovY;
+//                cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
+                tempX += lastFlowStep.x;
+                tempY += lastFlowStep.y;
+            }
 
             // output to files
             fprintf(pLocationFile,"%f %f\n", currLocation.x, currLocation.y);
@@ -324,7 +353,7 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
 //            cout << "Roll: " << eulerFromSensors.roll*(180/M_PI) << endl;
 //            cout << "Pitch: " << eulerFromSensors.pitch*(180/M_PI) << endl;
-            w.AngleCorrectionUpdate(lastFlowStep.x, lastFlowStep.y, Xpred, Ypred);
+
 		}
         //break conditions
         if(waitKey(1)>=0)

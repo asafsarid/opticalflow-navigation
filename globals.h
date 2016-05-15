@@ -7,6 +7,8 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#include<atomic>
+
 #define WIDTH_RES 320
 #define HEIGHT_RES 240
 #define PI 3.14159265
@@ -49,6 +51,9 @@ extern locationStruct lastFlowStep;
 extern locationStruct gpsLocation;
 // struct of Euler angles
 extern euler_angles eulerFromSensors;
+extern euler_angles prevEulerFromSensors;
+extern std::atomic<bool> eulerSpeedChanged;
+
 // distance- input from sensor
 extern float distanceSonar;
 // flag- active operation
