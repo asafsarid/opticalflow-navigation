@@ -240,7 +240,7 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
     currLocation.x = 0;
     currLocation.y = 0;
 	int i;
-    double Xpred, Ypred;
+    locationStruct predLocation;
 	double rovX, rovY;		// range of view in both axis
 
 	/*  open files for output data											***/
@@ -315,21 +315,24 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
             {
                 eulerSpeedChanged.store(false);
                 // predicted x,y change when rolling / pitching
-                Xpred = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
-                Ypred = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
+                predLocation.x = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
+                predLocation.y = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
+#ifdef YAW_ACTIVE
+                predLocation = calculateNewLocationByYaw(predLocation);
+#endif
                 cout << "Pitch: " << eulerFromSensors.pitch << endl;
                 cout << "PrevPitch: " << prevEulerFromSensors.pitch << endl;
 
                 cout << "PitchSpeed: " << (eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI) << endl;
                 cout << "RollSpeed: " << (eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI) << endl;
                 // calculate final x, y location
-                currLocation.x -= ((lastFlowStep.x + Xpred)/WIDTH_RES)*rovX;
-                currLocation.y += ((lastFlowStep.y - Ypred)/HEIGHT_RES)*rovY;
+                currLocation.x -= ((lastFlowStep.x + predLocation.x)/WIDTH_RES)*rovX;
+                currLocation.y += ((lastFlowStep.y - predLocation.y)/HEIGHT_RES)*rovY;
 
                 tempX += lastFlowStep.x;
                 tempY += lastFlowStep.y;
 
-                w.AngleCorrectionUpdate(tempX, tempY, Xpred, Ypred);
+                w.AngleCorrectionUpdate(tempX, tempY, predLocation.x, predLocation.y);
 
                 tempX = 0;
                 tempY = 0;
