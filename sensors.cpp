@@ -80,24 +80,20 @@ void *updateSensors(void *sensorsPort)
 {
 	// 1. cast the input pointer to the desired format
 	Serial_Port *p_sensorsPort = (Serial_Port *)sensorsPort;
-	// 2. open file to print the angles
-//    FILE * euler_FD = fopen ("./outputs/eulerAngles.txt","a");
-//    fprintf(euler_FD, "x is %d",0);
-//    fclose(euler_FD);
-    // 3. declare mavlink structs
+    // 2. declare mavlink structs
 	mavlink_message_t newMsg;
 	mavlink_attitude_t attitudeMsg;
 	mavlink_rangefinder_t rangeMsg;
     mavlink_gps_raw_int_t gpsIntMsg;
 
-	// 4. loop runs until we lower the active flag
+	// 3. loop runs until we lower the active flag
 	while(active)
 	{
-			// 4.1.1. read from device
+			// 3.1.1. read from device
 			p_sensorsPort->read_message(newMsg);
-			// 4.1.2. handle only attitude data
+			// 3.1.2. handle only attitude data
 			switch (newMsg.msgid) {
-			// 4.1.2.1. Euler angles
+			// 3.1.2.1. Euler angles
 			case MAVLINK_MSG_ID_ATTITUDE:
 				mavlink_msg_attitude_decode(&newMsg, &attitudeMsg);
                 if(attitudeMsg.pitchspeed != eulerFromSensors.pitchspeed ||
@@ -117,14 +113,13 @@ void *updateSensors(void *sensorsPort)
                     eulerFromSensors.yaw                = (-1) * attitudeMsg.yaw;
 
 				break;
-			// 4.1.2.2 Read Distance And Update
+			// 3.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
-//                cout << "raw sonar: " << rangeMsg.distance << endl;
-                distanceSonar		= rangeMsg.distance*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
-                updateHeight();
+                distanceSonar		= rangeMsg.distance;//*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
+                //updateHeight();
                 break;
-			// 4.1.2.3 Default Case
+			// 3.1.2.3 GPS
             case MAVLINK_MSG_ID_GPS_RAW_INT:
                 mavlink_msg_gps_raw_int_decode(&newMsg, &gpsIntMsg);
                 // if on init- update init coords, else- current
@@ -139,9 +134,10 @@ void *updateSensors(void *sensorsPort)
                 	currGPSCoords.lat = gpsIntMsg.lat / (double)10000000;
                 	currGPSCoords.lon = gpsIntMsg.lon / (double)10000000;
                 	currGPSCoords.alt = gpsIntMsg.alt / (double)10000000;
-                	updateGPSLocation();
+                	//updateGPSLocation();
                 }
                 break;
+            // 3.1.2.3 Default Case
 			default:
 				break;
 			}
@@ -168,7 +164,6 @@ double angleFromCoordinates()
 	// init
 	double lat2 = initGPSCoords.lat;
 	double long2 = initGPSCoords.lon;
-	//cout << "lat and lon: " << lat1 << ":" << long1 << endl;
     double dLon = (long2 - long1);
 
     double y = sin(dLon) * cos(lat2);
@@ -181,7 +176,6 @@ double angleFromCoordinates()
     while(brng > 360)
     	brng -= 360;
     brng = 360 - brng;
-    //printf("gps angle: %.3f\n", brng);
     return brng;
 }
 
@@ -248,9 +242,4 @@ void updateHeight(){
 			  }
 		}
 	height.median = height.value[height.length/2];
-//	for(i = 0 ; i < height.length; i++)
-//	{
-//		printf("%d: %.3f, ", i, height.value[i]);
-//	}
-//	printf("\nSonar: curr: %.3f, median: %.3f\n", distanceSonar, height.median);
 }
