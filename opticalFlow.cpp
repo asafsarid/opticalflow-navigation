@@ -124,56 +124,51 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
 }
 #endif
 
-void rotateImage(const Mat &input, UMat &output, double alpha, double beta, double gamma, double dx, double dy, double dz, double f)
+void rotateImage(const Mat &input, UMat &output, double roll, double pitch, double yaw,
+                 double dx, double dy, double dz, double f, double cx, double cy)
   {
-//    alpha = (alpha - 90.)*CV_PI/180.;
-//    beta = (beta - 90.)*CV_PI/180.;
-//    gamma = (gamma - 90.)*CV_PI/180.;
-    // get width and height for ease of use in matrices
-    double w = (double)input.cols;
-    double h = (double)input.rows;
-    // Projection 2D -> 3D matrix
+    // Camera Calibration Intrinsics Matrix
+    Mat A2 = (Mat_<double>(3,4) <<
+              f, 0, cx, 0,
+              0, f, cy, 0,
+              0, 0, 1,  0);
+    // Inverted Camera Calibration Intrinsics Matrix
     Mat A1 = (Mat_<double>(4,3) <<
-              1/f, 0, -(w/2)/f,
-              0, 1/f, -(h/2)/f,
-              0, 0,    0,
-              0, 0,    1);
+              1/f, 0,   -cx/f,
+              0,   1/f, -cy/f,
+              0,   0,   0,
+              0,   0,   1);
     // Rotation matrices around the X, Y, and Z axis
     Mat RX = (Mat_<double>(4, 4) <<
-              1,          0,           0, 0,
-              0, cos(alpha), -sin(alpha), 0,
-              0, sin(alpha),  cos(alpha), 0,
-              0,          0,           0, 1);
+              1, 0,         0,          0,
+              0, cos(roll), -sin(roll), 0,
+              0, sin(roll), cos(roll),  0,
+              0, 0,         0,          1);
     Mat RY = (Mat_<double>(4, 4) <<
-              cos(beta), 0, sin(beta), 0,
-              0, 1,          0, 0,
-              -sin(beta), 0,  cos(beta), 0,
-              0, 0,          0, 1);
+              cos(pitch),  0, sin(pitch), 0,
+              0,           1, 0,          0,
+              -sin(pitch), 0, cos(pitch), 0,
+              0,           0, 0,          1);
     Mat RZ = (Mat_<double>(4, 4) <<
-              cos(gamma), -sin(gamma), 0, 0,
-              sin(gamma),  cos(gamma), 0, 0,
-              0,          0,           1, 0,
-              0,          0,           0, 1);
-    // Composed rotation matrix with (RX, RY, RZ)
-    Mat R = RZ * RY * RX;
+              cos(yaw), -sin(yaw), 0, 0,
+              sin(yaw),  cos(yaw), 0, 0,
+              0,          0,       1, 0,
+              0,          0,       0, 1);
     // Translation matrix
     Mat T = (Mat_<double>(4, 4) <<
              1, 0, 0, dx,
              0, 1, 0, dy,
              0, 0, 1, dz,
              0, 0, 0, 1);
-    // 3D -> 2D matrix
-    Mat A2 = (Mat_<double>(3,4) <<
-              f, 0, w/2, 0,
-              0, f, h/2, 0,
-              0, 0,   1, 0);
+    // Compose rotation matrix with (RX, RY, RZ)
+    Mat R = RZ * RY * RX;
     // Final transformation matrix
-    Mat trans = A2 * (T * (R * A1));
+    Mat H = A2 * (T * (R * A1));
     // Apply matrix transformation
-    warpPerspective(input, output, trans, input.size(), INTER_LANCZOS4);
+    warpPerspective(input, output, H, input.size(), INTER_LANCZOS4);
 }
 
-void rotateFrame(const Mat &input, Mat &output, Mat &A , double roll, double pitch, double yaw){
+void rotateFrame(const Mat &input, UMat &output, Mat &A , double roll, double pitch, double yaw){
     Mat Rx = (Mat_<double>(3, 3) <<
               1,          0,           0,
               0, cos(roll), -sin(roll),
@@ -188,9 +183,24 @@ void rotateFrame(const Mat &input, Mat &output, Mat &A , double roll, double pit
               0,          0,           1);
 
     Mat R = Rz*Ry*Rx;
-    Mat trans = A*R*A.inv();
+    Mat H = A*R*A.inv();
 
-    warpPerspective(input, output, trans, input.size());
+    Mat T = (Mat_<double>(1,3) << WIDTH_RES/2, HEIGHT_RES/2, 1);
+    Mat W = H*T.t();
+
+    double bound_h = HEIGHT_RES*abs(cos(roll));
+    double bound_w = WIDTH_RES*abs(cos(pitch));
+
+    double dx = bound_w/2 - W.at<double>(0,0);
+    double dy = bound_h/2 - W.at<double>(0,1);
+
+    Mat temp = (Mat_<double>(3,3) << 1, 0, dx,
+                                     0, 1, dy,
+                                     0, 0, 1);
+    Mat trans = temp*H;
+
+
+    warpPerspective(input, output, H, input.size());
 }
 
 /* calculate the location */
@@ -269,9 +279,10 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 
 //        cout << "Yaw = " << eulerFromSensors.yaw*(180/M_PI) << endl;
 
-//        rotateFrame(origFrame, processedFrame, cameraMatrix, eulerFromSensors.roll, 0, 0);
+//        rotateFrame(processedFrame, gray, cameraMatrix, eulerFromSensors.roll, eulerFromSensors.pitch, 0);
 
-        rotateImage(processedFrame, gray, eulerFromSensors.roll, eulerFromSensors.pitch, 0, 0, 0, 1, 400);
+        rotateImage(processedFrame, gray, eulerFromSensors.roll, eulerFromSensors.pitch, 0, 0, 0, 1, cameraMatrix.at<double>(0,0),
+                    cameraMatrix.at<double>(0,2),cameraMatrix.at<double>(1,2));
 
 
 
@@ -302,8 +313,7 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
 #ifdef SONAR_ACTIVE
             rovX = 2*0.44523*height.median*100; 	// 2 * tan(48/2) * dist(cm)
             rovY = 2*0.32492*height.median*100;		// 2 * tan(36/2) * dist(cm)
-            cout << "Sonar Raw:    " << distanceSonar << endl;
-            cout << "Sonar Median: " << height.median << endl;
+//            cout << "Sonar Median: " << height.median << endl;
 #else
             double dist=87/(cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch));             // distance from surface in cm
 //            cout << "Distance: " << dist << endl;
@@ -314,17 +324,14 @@ int opticalFlow(int source, /*char* capturePath,*/ MainWindow &w){
             if(eulerSpeedChanged.load())
             {
                 eulerSpeedChanged.store(false);
-                // predicted x,y change when rolling / pitching
+
                 predLocation.x = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
                 predLocation.y = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
 #ifdef YAW_ACTIVE
                 predLocation = calculateNewLocationByYaw(predLocation);
 #endif
-                cout << "Pitch: " << eulerFromSensors.pitch << endl;
-                cout << "PrevPitch: " << prevEulerFromSensors.pitch << endl;
+                cout << "Sonar with factor: " << distanceSonar*1.36 << endl;
 
-                cout << "PitchSpeed: " << (eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI) << endl;
-                cout << "RollSpeed: " << (eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI) << endl;
                 // calculate final x, y location
                 currLocation.x -= ((lastFlowStep.x + predLocation.x)/WIDTH_RES)*rovX;
                 currLocation.y += ((lastFlowStep.y - predLocation.y)/HEIGHT_RES)*rovY;
