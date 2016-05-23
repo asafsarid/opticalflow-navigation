@@ -55,6 +55,7 @@ extern euler_angles prevEulerFromSensors;
 extern std::atomic<bool> eulerSpeedChanged;
 
 // distance- input from sensor
+extern float prevDistanceSonar;
 extern float distanceSonar;
 // flag- active operation
 extern int active;

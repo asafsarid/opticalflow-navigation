@@ -30,8 +30,11 @@ heightMedian height;
 euler_angles eulerFromSensors;
 euler_angles prevEulerFromSensors;
 atomic<bool> eulerSpeedChanged;
+float prevDistanceSonar;
 float distanceSonar;
 int active;
+
+#define DISTANCE_CHANGES_THRESHOLD 0.5
 
 /* Connect to the port of the sensors, configure the device and return the serial port descriptor */
 Serial_Port* open_port(/*char *path*/)
@@ -62,7 +65,11 @@ Serial_Port* open_port(/*char *path*/)
 	mavlink_message_t initMsg;
 	p_sensorsPort->read_message(initMsg);
 
-    // 5. return the port
+    // 5. set the distance variables
+	prevDistanceSonar = 0;
+	distanceSonar = 0;
+
+	// 6. return the port
 	return p_sensorsPort;
 }
 
@@ -116,7 +123,24 @@ void *updateSensors(void *sensorsPort)
 			// 3.1.2.2 Read Distance And Update
 			case MAVLINK_MSG_ID_RANGEFINDER:
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
-                distanceSonar		= rangeMsg.distance;//*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
+				if(init)
+				{
+	                distanceSonar		= rangeMsg.distance;//*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
+				}
+				// keep sonar changes filtered
+				else
+				{
+					// if new sample is consider accurate
+					if(abs(rangeMsg.distance - distanceSonar) < DISTANCE_CHANGES_THRESHOLD)
+					{
+						distanceSonar		= rangeMsg.distance;
+					}
+					// new sample is noise- dont update. just consider the cos factor
+//					else
+//					{
+//
+//					}
+				}
                 //updateHeight();
                 break;
 			// 3.1.2.3 GPS
