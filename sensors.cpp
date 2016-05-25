@@ -125,20 +125,21 @@ void *updateSensors(void *sensorsPort)
 				mavlink_msg_rangefinder_decode(&newMsg, &rangeMsg);
 				if(init)
 				{
-	                distanceSonar		= rangeMsg.distance;//*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
+	                distanceSonar		= rangeMsg.distance*1.36;//*cos(eulerFromSensors.pitch)*cos(eulerFromSensors.roll);
 				}
 				// keep sonar changes filtered
 				else
 				{
 					// if new sample is consider accurate
-					if(abs(rangeMsg.distance - distanceSonar) < DISTANCE_CHANGES_THRESHOLD)
+					if(abs(rangeMsg.distance*1.36 - distanceSonar) < DISTANCE_CHANGES_THRESHOLD)
 					{
-						distanceSonar		= rangeMsg.distance;
+						//cout << "Sonar good. Old: " << distanceSonar << " , new: " << rangeMsg.distance << endl;
+						distanceSonar		= rangeMsg.distance*1.36;
 					}
 					// new sample is noise- dont update. just consider the cos factor
 //					else
 //					{
-//
+//						cout << "Sonar not good. Old: " << distanceSonar << " , new: " << rangeMsg.distance << endl;
 //					}
 				}
                 //updateHeight();

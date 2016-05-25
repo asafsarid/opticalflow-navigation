@@ -64,15 +64,15 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
             counter++;
         }
     // update the global variable - location of the UAV
-#ifdef YAW_ACTIVE
-    locationStruct notUpdatedFlowStep;
-    notUpdatedFlowStep.x = distPixelx/counter;
-    notUpdatedFlowStep.y = distPixely/counter;
-    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
-#else
+//#ifdef YAW_ACTIVE
+//    locationStruct notUpdatedFlowStep;
+//    notUpdatedFlowStep.x = distPixelx/counter;
+//    notUpdatedFlowStep.y = distPixely/counter;
+//    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
+//#else
     lastFlowStep.x = distPixelx/counter;
     lastFlowStep.y = distPixely/counter;
-#endif
+//#endif
 }
 #else
 void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
@@ -91,15 +91,15 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
             counter++;
         }
     // update the global variable - location of the UAV
-#ifdef YAW_ACTIVE
-    locationStruct notUpdatedFlowStep;
-    notUpdatedFlowStep.x = distPixelx/counter;
-    notUpdatedFlowStep.y = distPixely/counter;
-    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
-#else
+//#ifdef YAW_ACTIVE
+//    locationStruct notUpdatedFlowStep;
+//    notUpdatedFlowStep.x = distPixelx/counter;
+//    notUpdatedFlowStep.y = distPixely/counter;
+//    lastFlowStep = calculateNewLocationByYaw(notUpdatedFlowStep);
+//#else
     lastFlowStep.x = distPixelx/counter;
     lastFlowStep.y = distPixely/counter;
-#endif
+//#endif
 }
 #endif
 
@@ -192,7 +192,7 @@ int opticalFlow(int source, MainWindow &w){
    cout << "Capture from: " << endl << source << endl;
 
    // capture from camera
-   VideoCapture cap(0);
+   VideoCapture cap(1);
     if( !cap.isOpened() )
 		return -1;
 
@@ -281,8 +281,9 @@ int opticalFlow(int source, MainWindow &w){
 
             // calculate range of view - 2*tan(fov/2)*distance
 #ifdef SONAR_ACTIVE
-            rovX = 2*0.44523*height.median*100; 	// 2 * tan(48/2) * dist(cm)
-            rovY = 2*0.32492*height.median*100;		// 2 * tan(36/2) * dist(cm)
+            // currently dont take the median, take the last sample
+            rovX = 2*0.44523*100*distanceSonar;//*height.median; 	// 2 * tan(48/2) * dist(cm)
+            rovY = 2*0.32492*100*distanceSonar;//*height.median;	// 2 * tan(36/2) * dist(cm)
 #else
             double dist=87/(cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch));             // distance from surface in cm
             rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
@@ -295,14 +296,21 @@ int opticalFlow(int source, MainWindow &w){
 
                 predLocation.x = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
                 predLocation.y = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
-#ifdef YAW_ACTIVE
-                predLocation = calculateNewLocationByYaw(predLocation);
-#endif
-                cout << "Sonar with factor: " << distanceSonar*1.36 << endl;
+
+                cout << "Sonar with factor: " << distanceSonar << endl;
+                cout << "Yaw: " << eulerFromSensors.yaw << endl;
 
                 // calculate final x, y location
-                currLocation.x -= ((lastFlowStep.x + predLocation.x)/WIDTH_RES)*rovX;
-                currLocation.y += ((lastFlowStep.y - predLocation.y)/HEIGHT_RES)*rovY;
+                locationStruct locationCorrectionAfterYaw;
+                locationCorrectionAfterYaw.x = ((lastFlowStep.x + predLocation.x)/WIDTH_RES)*rovX;
+                locationCorrectionAfterYaw.y = ((lastFlowStep.y - predLocation.y)/WIDTH_RES)*rovX;
+
+#ifdef YAW_ACTIVE
+                locationCorrectionAfterYaw = calculateNewLocationByYaw(locationCorrectionAfterYaw);
+#endif
+
+                currLocation.x -= locationCorrectionAfterYaw.x;
+                currLocation.y += locationCorrectionAfterYaw.y;
 
                 tempX += lastFlowStep.x;
                 tempY += lastFlowStep.y;
@@ -314,8 +322,16 @@ int opticalFlow(int source, MainWindow &w){
             }
             else{
                 // calculate final x, y location
-                currLocation.x -= (lastFlowStep.x/WIDTH_RES)*rovX;
-                currLocation.y += (lastFlowStep.y/HEIGHT_RES)*rovY;
+                locationStruct locationCorrectionAfterYaw;
+                locationCorrectionAfterYaw.x = (lastFlowStep.x/WIDTH_RES)*rovX;
+                locationCorrectionAfterYaw.y = (lastFlowStep.y/HEIGHT_RES)*rovY;
+
+#ifdef YAW_ACTIVE
+                locationCorrectionAfterYaw = calculateNewLocationByYaw(locationCorrectionAfterYaw);
+#endif
+                // calculate final x, y location
+                currLocation.x -= locationCorrectionAfterYaw.x;
+                currLocation.y += locationCorrectionAfterYaw.y;
                 tempX += lastFlowStep.x;
                 tempY += lastFlowStep.y;
             }
