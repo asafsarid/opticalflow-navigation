@@ -26,7 +26,7 @@ using namespace std;
 /* import global variables */
 locationStruct currLocation;
 locationStruct lastFlowStep;
-locationStruct lastFlowStepSections[2];
+locationStruct lastFlowStepSections[4];
 locationStruct gpsLocation;
 string currentTime;
 int end_run;
@@ -219,15 +219,8 @@ void *OpticalFlowPerSection(void *currSectionInfo)
 	calcOpticalFlowFarneback(currSection->prevFrameSection, currSection->frameSection, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
     uflow.copyTo(flow);
 
-    // left section
-    if(currSection->index == 0){
-        float corners[4] = {0.33,0.89,0.16,0.83};
-    	calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
-    }
-	else{
-        float corners[4] = {0.11,0.66,0.16,0.83};
-		calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
-	}
+    float corners[4] = {0.09,0.91,0.09,0.91};
+    calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
 
 	return NULL;
 }
@@ -322,26 +315,40 @@ int opticalFlow(int source, MainWindow &w){
 			imshow("flow", prevgray);
 #endif
             // calculate flow per section
-			sectionInfo leftSection, rightSection;
+            sectionInfo topLeft, topRight;
+            sectionInfo bottomLeft, bottomRight;
 
-            leftSection.frameSection = UMat(gray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(0.1*WIDTH_RES,WIDTH_RES*0.55));
-            leftSection.prevFrameSection = UMat(prevgray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(0.1*WIDTH_RES,WIDTH_RES*0.55));
-			leftSection.index = 0;
+            topLeft.frameSection = UMat(gray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
+            topLeft.prevFrameSection = UMat(prevgray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
+            topLeft.index = 0;
 
-            rightSection.frameSection = UMat(gray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES*0.9));
-            rightSection.prevFrameSection = UMat(prevgray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES*0.9));
-			rightSection.index = 1;
+            topRight.frameSection = UMat(gray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
+            topRight.prevFrameSection = UMat(prevgray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
+            topRight.index = 1;
 
-		    pthread_t leftSection_thread, rightSection_thread;
-		    pthread_create(&leftSection_thread, NULL, OpticalFlowPerSection, &leftSection);
-		    pthread_create(&rightSection_thread, NULL, OpticalFlowPerSection, &rightSection);
+            bottomLeft.frameSection = UMat(gray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
+            bottomLeft.prevFrameSection = UMat(prevgray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
+            bottomLeft.index = 2;
 
-		    pthread_join(leftSection_thread, NULL);
-		    pthread_join(rightSection_thread, NULL);
+            bottomRight.frameSection = UMat(gray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
+            bottomRight.prevFrameSection = UMat(prevgray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
+            bottomRight.index = 3;
+
+            pthread_t topLeft_thread, topRight_thread;
+            pthread_t bottomLeft_thread, bottomRight_thread;
+            pthread_create(&topLeft_thread, NULL, OpticalFlowPerSection, &topLeft);
+            pthread_create(&topRight_thread, NULL, OpticalFlowPerSection, &topRight);
+            pthread_create(&bottomLeft_thread, NULL, OpticalFlowPerSection, &bottomLeft);
+            pthread_create(&bottomRight_thread, NULL, OpticalFlowPerSection, &bottomRight);
+
+            pthread_join(topLeft_thread, NULL);
+            pthread_join(topRight_thread, NULL);
+            pthread_join(bottomLeft_thread, NULL);
+            pthread_join(bottomRight_thread, NULL);
 
             // merge the outputs
-		    lastFlowStep.x = (lastFlowStepSections[0].x + lastFlowStepSections[1].x)/2;
-		    lastFlowStep.y = (lastFlowStepSections[0].y + lastFlowStepSections[1].y)/2;
+            lastFlowStep.x = (lastFlowStepSections[0].x + lastFlowStepSections[1].x + lastFlowStepSections[2].x + lastFlowStepSections[3].x)/4;
+            lastFlowStep.y = (lastFlowStepSections[0].y + lastFlowStepSections[1].y + lastFlowStepSections[2].y + lastFlowStepSections[3].y)/4;
             // get average
 
 //#ifdef VIDEO_ACTIVE
