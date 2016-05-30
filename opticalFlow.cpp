@@ -192,7 +192,7 @@ int opticalFlow(int source, MainWindow &w){
    cout << "Capture from: " << endl << source << endl;
 
    // capture from camera
-   VideoCapture cap(1);
+   VideoCapture cap(0);
     if( !cap.isOpened() )
 		return -1;
 
@@ -315,7 +315,7 @@ int opticalFlow(int source, MainWindow &w){
                 tempX += lastFlowStep.x;
                 tempY += lastFlowStep.y;
 
-                w.AngleCorrectionUpdate(tempX, tempY, predLocation.x, predLocation.y);
+                w.AngleCorrectionUpdate(tempX, tempY, -predLocation.x, predLocation.y);
 
                 tempX = 0;
                 tempY = 0;

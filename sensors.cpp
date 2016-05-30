@@ -97,7 +97,11 @@ void *updateSensors(void *sensorsPort)
 	while(active)
 	{
 			// 3.1.1. read from device
-			p_sensorsPort->read_message(newMsg);
+            int msgReceived = p_sensorsPort->read_message(newMsg);
+            if (!newMsg.msgid == MAVLINK_MSG_ID_RANGEFINDER && !msgReceived)
+                continue;
+//            if (!msgReceived)
+//                continue;
 			// 3.1.2. handle only attitude data
 			switch (newMsg.msgid) {
 			// 3.1.2.1. Euler angles
@@ -142,6 +146,7 @@ void *updateSensors(void *sensorsPort)
 //						cout << "Sonar not good. Old: " << distanceSonar << " , new: " << rangeMsg.distance << endl;
 //					}
 				}
+//                  cout << "Sonar: " << distanceSonar << endl;
                 //updateHeight();
                 break;
 			// 3.1.2.3 GPS

@@ -1,0 +1,4 @@
+callgrind.out*
+*.o
+ui_*.h
+moc_*.cpp
