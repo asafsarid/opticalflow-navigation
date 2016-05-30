@@ -41,12 +41,19 @@ typedef struct{
 	double median;
 }heightMedian;
 
+typedef struct{
+	UMat frameSection;
+	UMat prevFrameSection;
+	int32_t index;
+}sectionInfo;
+
 #endif /* GLOBALS_H_ */
 
 
 
 // location of the UAV
 extern locationStruct currLocation;
+extern locationStruct lastFlowStepSections[2];
 extern locationStruct lastFlowStep;
 extern locationStruct gpsLocation;
 // struct of Euler angles

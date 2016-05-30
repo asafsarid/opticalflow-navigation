@@ -26,12 +26,12 @@ using namespace std;
 /* import global variables */
 locationStruct currLocation;
 locationStruct lastFlowStep;
+locationStruct lastFlowStepSections[2];
 locationStruct gpsLocation;
 string currentTime;
 int end_run;
 
 /*************************************** Auxiliary functions ******************************/
-
 /* this function finds the right location according yaw angle*/
 locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
     float yYaw = eulerFromSensors.yaw - M_PI/2;
@@ -102,6 +102,26 @@ void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
 //#endif
 }
 #endif
+
+void calcAvgOpticalFlowPerSection(const Mat& flow, int step, int index, float corners[4])
+{
+    // the distance each pixel traveled per two frames
+    double distPixelx = 0, distPixely = 0;
+    // count the number of pixels
+    int counter = 0;
+    // draw the optical flow and sum the distance that all the pixels have traveled
+    for(int y = flow.rows*corners[2]; y < flow.rows*corners[3]; y += step)
+        for(int x = flow.cols*corners[0]; x < flow.cols*corners[1]; x += step)
+        {
+            const Point2f& fxy = flow.at<Point2f>(y, x);
+            distPixelx += fxy.x;
+            distPixely += fxy.y;
+            counter++;
+        }
+
+    lastFlowStepSections[index].x = distPixelx/counter;
+    lastFlowStepSections[index].y = distPixely/counter;
+}
 
 void rotateImage(const Mat &input, UMat &output, double roll, double pitch, double yaw,
                  double dx, double dy, double dz, double f, double cx, double cy)
@@ -180,6 +200,30 @@ void rotateFrame(const Mat &input, UMat &output, Mat &A , double roll, double pi
 
 
     warpPerspective(input, output, H, input.size());
+}
+
+/* Calculate optical flow per section */
+void *OpticalFlowPerSection(void *currSectionInfo)
+{
+	Mat flow;
+	UMat uflow;
+	// 1. cast the input pointer to the desired format
+	sectionInfo *currSection = (sectionInfo *)currSectionInfo;
+	// 2. send to optical flow algorithm
+	calcOpticalFlowFarneback(currSection->prevFrameSection, currSection->frameSection, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
+    uflow.copyTo(flow);
+
+    // left section
+    if(currSection->index == 0){
+    	float corners[4] = {0.45,0.91,0.25,0.75};
+    	calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
+    }
+	else{
+		float corners[4] = {0.1,0.55,0.25,0.75};
+		calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
+	}
+
+	return NULL;
 }
 
 /* calculate the location of the UAV according the input frame from the camera and the angles of the body*/
@@ -267,17 +311,39 @@ int opticalFlow(int source, MainWindow &w){
 
 		if( !prevgray.empty() )
 		{
-            // calculate flow
-			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
-            uflow.copyTo(flow);
-
-            // get average
 #ifdef VIDEO_ACTIVE
-            drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), corners);
-            imshow("flow", prevgray);
-#else
-            calcAvgOpticalFlow(flow, 16, corners);
+			// show camera view
+			imshow("flow", prevgray);
 #endif
+            // calculate flow per section
+			sectionInfo leftSection, rightSection;
+
+			leftSection.frameSection = UMat(gray, Range(0,HEIGHT_RES), Range(0,WIDTH_RES*0.55));
+			leftSection.prevFrameSection = UMat(prevgray, Range(0,HEIGHT_RES), Range(0,WIDTH_RES*0.55));
+			leftSection.index = 0;
+
+			rightSection.frameSection = UMat(gray, Range(0,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES));
+			rightSection.prevFrameSection = UMat(prevgray, Range(0,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES));
+			rightSection.index = 1;
+
+		    pthread_t leftSection_thread, rightSection_thread;
+		    pthread_create(&leftSection_thread, NULL, OpticalFlowPerSection, &leftSection);
+		    pthread_create(&rightSection_thread, NULL, OpticalFlowPerSection, &rightSection);
+
+		    pthread_join(leftSection_thread, NULL);
+		    pthread_join(rightSection_thread, NULL);
+
+            // merge the outputs
+		    lastFlowStep.x = (lastFlowStepSections[0].x + lastFlowStepSections[1].x)/2;
+		    lastFlowStep.y = (lastFlowStepSections[0].y + lastFlowStepSections[1].y)/2;
+            // get average
+
+//#ifdef VIDEO_ACTIVE
+//            drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), corners);
+//            imshow("flow", prevgray);
+//#else
+//            calcAvgOpticalFlow(flow, 16, corners);
+//#endif
 
             // calculate range of view - 2*tan(fov/2)*distance
 #ifdef SONAR_ACTIVE
