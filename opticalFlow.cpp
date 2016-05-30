@@ -221,11 +221,11 @@ void *OpticalFlowPerSection(void *currSectionInfo)
 
     // left section
     if(currSection->index == 0){
-    	float corners[4] = {0.45,0.91,0.25,0.75};
+        float corners[4] = {0.33,0.89,0.16,0.83};
     	calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
     }
 	else{
-		float corners[4] = {0.1,0.55,0.25,0.75};
+        float corners[4] = {0.11,0.66,0.16,0.83};
 		calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
 	}
 
@@ -324,12 +324,12 @@ int opticalFlow(int source, MainWindow &w){
             // calculate flow per section
 			sectionInfo leftSection, rightSection;
 
-			leftSection.frameSection = UMat(gray, Range(0,HEIGHT_RES), Range(0,WIDTH_RES*0.55));
-			leftSection.prevFrameSection = UMat(prevgray, Range(0,HEIGHT_RES), Range(0,WIDTH_RES*0.55));
+            leftSection.frameSection = UMat(gray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(0.1*WIDTH_RES,WIDTH_RES*0.55));
+            leftSection.prevFrameSection = UMat(prevgray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(0.1*WIDTH_RES,WIDTH_RES*0.55));
 			leftSection.index = 0;
 
-			rightSection.frameSection = UMat(gray, Range(0,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES));
-			rightSection.prevFrameSection = UMat(prevgray, Range(0,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES));
+            rightSection.frameSection = UMat(gray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES*0.9));
+            rightSection.prevFrameSection = UMat(prevgray, Range(0.1*HEIGHT_RES,HEIGHT_RES), Range(WIDTH_RES*0.45, WIDTH_RES*0.9));
 			rightSection.index = 1;
 
 		    pthread_t leftSection_thread, rightSection_thread;
