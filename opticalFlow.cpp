@@ -31,6 +31,12 @@ locationStruct gpsLocation;
 string currentTime;
 int end_run;
 
+typedef struct{
+    UMat frameSection;
+    UMat prevFrameSection;
+    int32_t index;
+}sectionInfo;
+
 /*************************************** Auxiliary functions ******************************/
 /* this function finds the right location according yaw angle*/
 locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
@@ -369,7 +375,7 @@ int opticalFlow(int source, MainWindow &w){
                 // calculate final x, y location
                 locationStruct locationCorrectionAfterYaw;
                 locationCorrectionAfterYaw.x = ((lastFlowStep.x + predLocation.x)/WIDTH_RES)*rovX;
-                locationCorrectionAfterYaw.y = ((lastFlowStep.y - predLocation.y)/WIDTH_RES)*rovX;
+                locationCorrectionAfterYaw.y = ((lastFlowStep.y - predLocation.y)/HEIGHT_RES)*rovY;
 
 #ifdef YAW_ACTIVE
                 locationCorrectionAfterYaw = calculateNewLocationByYaw(locationCorrectionAfterYaw);

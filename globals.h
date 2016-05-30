@@ -7,7 +7,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-#include<atomic>
+#include <atomic>
 
 #define WIDTH_RES 320
 #define HEIGHT_RES 240
@@ -40,12 +40,6 @@ typedef struct{
     int32_t length = 13;
 	double median;
 }heightMedian;
-
-typedef struct{
-	UMat frameSection;
-	UMat prevFrameSection;
-	int32_t index;
-}sectionInfo;
 
 #endif /* GLOBALS_H_ */
 
