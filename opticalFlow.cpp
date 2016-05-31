@@ -52,7 +52,7 @@ locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
 /* this function draws the flow on the screen and accumulates the distance the UAV traveled */
 #ifdef VIDEO_ACTIVE
 void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
-                    double, const Scalar& color, vector<Point2f> corners)
+                    double, const Scalar& color)
 {
 	// the distance each pixel traveled per two frames
 	double distPixelx = 0, distPixely = 0;
@@ -81,7 +81,7 @@ void drawOptFlowMap(const Mat& flow, UMat& cflowmap, int step,
 //#endif
 }
 #else
-void calcAvgOpticalFlow(const Mat& flow, int step, vector<Point2f> corners)
+void calcAvgOpticalFlow(const Mat& flow, int step)
 {
     // the distance each pixel traveled per two frames
     double distPixelx = 0, distPixely = 0;
@@ -292,21 +292,13 @@ int opticalFlow(int source, MainWindow &w){
 	// for each frame calculate optical flow
 	for(;;)
 	{
-		Mat m, disp, warp;
-		vector<Point2f> corners;
 		// take out frame- still distorted
 		cap >> origFrame;
 
         cvtColor(origFrame, processedFrame, COLOR_BGR2GRAY);
 
-
-//        rotateFrame(processedFrame, gray, cameraMatrix, eulerFromSensors.roll, eulerFromSensors.pitch, 0);
-
         rotateImage(processedFrame, gray, eulerFromSensors.roll, eulerFromSensors.pitch, 0, 0, 0, 1, cameraMatrix.at<double>(0,0),
                     cameraMatrix.at<double>(0,2),cameraMatrix.at<double>(1,2));
-
-		// undistort the frame using the calibration parameters
-//        cv::undistort(origFrame, undistortFrame, cameraMatrix, distCoeffs, noArray());
 
 		if( !prevgray.empty() )
 		{
@@ -352,17 +344,17 @@ int opticalFlow(int source, MainWindow &w){
             // get average
 
 //#ifdef VIDEO_ACTIVE
-//            drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0), corners);
+//            drawOptFlowMap(flow, prevgray, 16, 1.5, Scalar(0, 255, 0));
 //            imshow("flow", prevgray);
 //#else
-//            calcAvgOpticalFlow(flow, 16, corners);
+//            calcAvgOpticalFlow(flow, 16);
 //#endif
 
             // calculate range of view - 2*tan(fov/2)*distance
 #ifdef SONAR_ACTIVE
             // currently dont take the median, take the last sample
-            rovX = 2*0.44523*100*distanceSonar;//*height.median; 	// 2 * tan(48/2) * dist(cm)
-            rovY = 2*0.32492*100*distanceSonar;//*height.median;	// 2 * tan(36/2) * dist(cm)
+            rovX = 2*0.44523*100*distanceSonar*cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch);//*height.median; 	// 2 * tan(48/2) * dist(cm)
+            rovY = 2*0.32492*100*distanceSonar*cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch);//*height.median;	// 2 * tan(36/2) * dist(cm)
 #else
             double dist=87/(cos(eulerFromSensors.roll)*cos(eulerFromSensors.pitch));             // distance from surface in cm
             rovX = 2*0.44523*dist; 		// 2 * tan(48/2) * dist
@@ -373,8 +365,8 @@ int opticalFlow(int source, MainWindow &w){
             {
                 eulerSpeedChanged.store(false);
 
-                predLocation.x = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/M_PI)*WIDTH_RES) / 48;
-                predLocation.y = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/M_PI)*HEIGHT_RES) / 36;
+                predLocation.x = ((eulerFromSensors.pitch-prevEulerFromSensors.pitch)*(180/PI)*WIDTH_RES) / 48;
+                predLocation.y = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/PI)*HEIGHT_RES) / 36;
 
                 cout << "Sonar with factor: " << distanceSonar << endl;
                 cout << "Yaw: " << eulerFromSensors.yaw << endl;
@@ -421,7 +413,6 @@ int opticalFlow(int source, MainWindow &w){
 
             // Update Plots
             w.UpdatePlot(currLocation.x,currLocation.y);
-//            w.AngleCorrectionUpdate(eulerFromSensors.roll*(180/M_PI), eulerFromSensors.pitch*(180/M_PI), 0, 0);
 		}
         //break conditions
         if(waitKey(1)>=0)
