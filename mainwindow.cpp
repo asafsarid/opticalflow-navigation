@@ -33,7 +33,17 @@ void MainWindow::MakePlot()
     x.append(0);
     y.append(0);
     this->newCurve->setData(x, y);
+    QPen pen;
+    pen.setColor(Qt::blue);
+    pen.setWidth(2);
 
+    this->newCurve->setPen(pen);
+
+
+    ui->customPlot->yAxis->setLabelFont(QFont("Helvetica",15));
+    ui->customPlot->xAxis->setTickLabelFont(QFont("Helvetica",12));
+    ui->customPlot->xAxis->setLabelFont(QFont("Helvetica",15));
+    ui->customPlot->yAxis->setTickLabelFont(QFont("Helvetica",12));
     ui->customPlot->xAxis->setLabel("X (cm)");
     ui->customPlot->yAxis->setLabel("Y (cm)");
     ui->customPlot->xAxis->setRange(-100, 100);

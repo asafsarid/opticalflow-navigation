@@ -20,19 +20,25 @@ void AngleCorrection::MakePlot()
 {
     this->time = 0;
     QPen pen;
-    pen.setStyle(Qt::DashLine);
+    pen.setStyle(Qt::DotLine);
     pen.setColor(Qt::blue);
+    pen.setWidth(2);
+
+    QPen pen2;
+    pen2.setColor(Qt::blue);
+    pen2.setWidth(2);
 
     //Delta X
     ui->correctXPlot->addGraph();
     ui->correctXPlot->graph(0)->addData(0,0);
-    ui->correctXPlot->graph(0)->setPen(QPen(Qt::blue));
+    ui->correctXPlot->graph(0)->setPen(pen2);
     ui->correctXPlot->graph(0)->setName("DeltaX");
 
+    pen2.setColor(Qt::red);
     //Delta Y
     ui->correctYPlot->addGraph();
     ui->correctYPlot->graph(0)->addData(0,0);
-    ui->correctYPlot->graph(0)->setPen(QPen(Qt::red));
+    ui->correctYPlot->graph(0)->setPen(pen2);
     ui->correctYPlot->graph(0)->setName("DeltaY");
 
     //Predicted X
@@ -49,18 +55,26 @@ void AngleCorrection::MakePlot()
     ui->correctYPlot->graph(1)->setName("PredY");
 
     //Set Labels and Ranges
-    ui->correctXPlot->xAxis->setLabel("Time (Sec)");
+    ui->correctXPlot->xAxis->setLabel("Time (1/10 Sec)");
+    ui->correctXPlot->xAxis->setLabelFont(QFont("Helvetica",15));
+    ui->correctXPlot->yAxis->setLabelFont(QFont("Helvetica",15));
+    ui->correctXPlot->xAxis->setTickLabelFont(QFont("Helvetica",12));
+    ui->correctXPlot->yAxis->setTickLabelFont(QFont("Helvetica",12));
     ui->correctXPlot->yAxis->setLabel("Distance X (cm)");
     ui->correctXPlot->yAxis->setRange(-50, 50);
-    ui->correctYPlot->xAxis->setLabel("Time (Sec)");
+    ui->correctYPlot->xAxis->setLabel("Time (1/10 Sec)");
+    ui->correctYPlot->yAxis->setLabelFont(QFont("Helvetica",15));
+    ui->correctYPlot->xAxis->setLabelFont(QFont("Helvetica",15));
+    ui->correctYPlot->xAxis->setTickLabelFont(QFont("Helvetica",12));
+    ui->correctYPlot->yAxis->setTickLabelFont(QFont("Helvetica",12));
     ui->correctYPlot->yAxis->setLabel("Distance Y (cm)");
     ui->correctYPlot->yAxis->setRange(-50, 50);
 
     //Add Legend
     ui->correctXPlot->legend->setVisible(true);
-    ui->correctXPlot->legend->setFont(QFont("Helvetica", 9));
+    ui->correctXPlot->legend->setFont(QFont("Helvetica", 15));
     ui->correctYPlot->legend->setVisible(true);
-    ui->correctYPlot->legend->setFont(QFont("Helvetica", 9));
+    ui->correctYPlot->legend->setFont(QFont("Helvetica", 15));
 
     ui->correctXPlot->replot();
     ui->correctYPlot->replot();
@@ -87,8 +101,7 @@ void AngleCorrection::UpdatePlot(double deltaX, double deltaY, double predX, dou
 void AngleCorrection::on_pushButton_clicked()
 {
     QString file_name_x = "./outputs/" + QString::fromStdString(currentTime) + "correctionX.png";
-    QString file_name_y = "./outputs/" + QString::fromStdString(currentTime) + "correctionX.png";
+    QString file_name_y = "./outputs/" + QString::fromStdString(currentTime) + "correctionY.png";
     ui->correctXPlot->savePng(file_name_x);
     ui->correctYPlot->savePng(file_name_y);
-    this->close();
 }
