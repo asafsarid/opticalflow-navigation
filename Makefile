@@ -49,32 +49,26 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = mainwindow.cpp \
-		att_control.cpp \
 		feedback.cpp \
 		opticalFlow.cpp \
-		pid.cpp \
-		pos_control.cpp \
 		qcustomplot.cpp \
-		quadcopter.cpp \
 		sensors.cpp \
 		serial_port.cpp \
 		eulerplot.cpp \
-		anglecorrection.cpp moc_mainwindow.cpp \
+		anglecorrection.cpp \
+		opticalflowfunctions.cpp moc_mainwindow.cpp \
 		moc_qcustomplot.cpp \
 		moc_eulerplot.cpp \
 		moc_anglecorrection.cpp
 OBJECTS       = mainwindow.o \
-		att_control.o \
 		feedback.o \
 		opticalFlow.o \
-		pid.o \
-		pos_control.o \
 		qcustomplot.o \
-		quadcopter.o \
 		sensors.o \
 		serial_port.o \
 		eulerplot.o \
 		anglecorrection.o \
+		opticalflowfunctions.o \
 		moc_mainwindow.o \
 		moc_qcustomplot.o \
 		moc_eulerplot.o \
@@ -136,28 +130,22 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		Feedback.pro mainwindow.h \
-		att_control.h \
 		globals.h \
 		opticalFlow.h \
-		pid.h \
-		pos_control.h \
 		qcustomplot.h \
-		quadcopter.h \
 		sensors.h \
 		serial_port.h \
 		eulerplot.h \
-		anglecorrection.h mainwindow.cpp \
-		att_control.cpp \
+		anglecorrection.h \
+		opticalflowfunctions.h mainwindow.cpp \
 		feedback.cpp \
 		opticalFlow.cpp \
-		pid.cpp \
-		pos_control.cpp \
 		qcustomplot.cpp \
-		quadcopter.cpp \
 		sensors.cpp \
 		serial_port.cpp \
 		eulerplot.cpp \
-		anglecorrection.cpp
+		anglecorrection.cpp \
+		opticalflowfunctions.cpp
 QMAKE_TARGET  = Feedback
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = Feedback
@@ -325,8 +313,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h att_control.h globals.h opticalFlow.h pid.h pos_control.h qcustomplot.h quadcopter.h sensors.h serial_port.h eulerplot.h anglecorrection.h $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.cpp att_control.cpp feedback.cpp opticalFlow.cpp pid.cpp pos_control.cpp qcustomplot.cpp quadcopter.cpp sensors.cpp serial_port.cpp eulerplot.cpp anglecorrection.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h globals.h opticalFlow.h qcustomplot.h sensors.h serial_port.h eulerplot.h anglecorrection.h opticalflowfunctions.h $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.cpp feedback.cpp opticalFlow.cpp qcustomplot.cpp sensors.cpp serial_port.cpp eulerplot.cpp anglecorrection.cpp opticalflowfunctions.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui eulerplot.ui anglecorrection.ui $(DISTDIR)/
 
 
@@ -403,10 +391,6 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		ui_mainwindow.h \
 		globals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
-
-att_control.o: att_control.cpp pid.h \
-		att_control.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o att_control.o att_control.cpp
 
 feedback.o: feedback.cpp sensors.h \
 		c_library/common/mavlink.h \
@@ -551,37 +535,19 @@ feedback.o: feedback.cpp sensors.h \
 		qcustomplot.h \
 		eulerplot.h \
 		anglecorrection.h \
-		globals.h \
-		quadcopter.h \
-		att_control.h \
-		pid.h \
-		pos_control.h
+		globals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o feedback.o feedback.cpp
 
-opticalFlow.o: opticalFlow.cpp perspective.cpp \
-		globals.h \
+opticalFlow.o: opticalFlow.cpp globals.h \
 		mainwindow.h \
 		qcustomplot.h \
 		eulerplot.h \
-		anglecorrection.h
+		anglecorrection.h \
+		opticalflowfunctions.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o opticalFlow.o opticalFlow.cpp
-
-pid.o: pid.cpp pid.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o pid.o pid.cpp
-
-pos_control.o: pos_control.cpp pid.h \
-		pos_control.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o pos_control.o pos_control.cpp
 
 qcustomplot.o: qcustomplot.cpp qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qcustomplot.o qcustomplot.cpp
-
-quadcopter.o: quadcopter.cpp quadcopter.h \
-		att_control.h \
-		pid.h \
-		pos_control.h \
-		globals.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o quadcopter.o quadcopter.cpp
 
 sensors.o: sensors.cpp sensors.h \
 		c_library/common/mavlink.h \
@@ -865,13 +831,19 @@ serial_port.o: serial_port.cpp serial_port.h \
 
 eulerplot.o: eulerplot.cpp eulerplot.h \
 		ui_eulerplot.h \
+		qcustomplot.h \
 		globals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o eulerplot.o eulerplot.cpp
 
 anglecorrection.o: anglecorrection.cpp anglecorrection.h \
 		ui_anglecorrection.h \
+		qcustomplot.h \
 		globals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o anglecorrection.o anglecorrection.cpp
+
+opticalflowfunctions.o: opticalflowfunctions.cpp opticalflowfunctions.h \
+		globals.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o opticalflowfunctions.o opticalflowfunctions.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp

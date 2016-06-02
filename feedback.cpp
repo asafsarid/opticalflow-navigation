@@ -17,7 +17,6 @@
 #include "sensors.h"
 #include "opticalFlow.h"  //includes also mainwindow.h
 #include "globals.h"
-#include "quadcopter.h"
 #include <QApplication>
 
 /* Namespaces */
@@ -68,10 +67,6 @@ int main(int argc, char** argv)
     // start qt window
     MainWindow w;
     w.show();
-
-    // create and run thread for flight controller
- //	pthread_t controller_thread;
- //	pthread_create(&controller_thread, NULL, controller, NULL);
 
     // calculate location
     opticalFlow(1, w);

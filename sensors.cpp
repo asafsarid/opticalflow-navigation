@@ -98,7 +98,7 @@ void *updateSensors(void *sensorsPort)
 	{
 			// 3.1.1. read from device
             int msgReceived = p_sensorsPort->read_message(newMsg);
-            if (!newMsg.msgid == MAVLINK_MSG_ID_RANGEFINDER && !msgReceived)
+            if (!(newMsg.msgid == MAVLINK_MSG_ID_RANGEFINDER) && !msgReceived)
                 continue;
 //            if (!msgReceived)
 //                continue;

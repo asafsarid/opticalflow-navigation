@@ -30,31 +30,24 @@ QMAKE_CXXFLAGS += -D$${SONAR} -D$${VIDEO} -D$${YAW} -std=c++11
 
 SOURCES +=\
         mainwindow.cpp \
-    att_control.cpp \
     feedback.cpp \
     opticalFlow.cpp \
-    perspective.cpp \
-    pid.cpp \
-    pos_control.cpp \
     qcustomplot.cpp \
-    quadcopter.cpp \
     sensors.cpp \
     serial_port.cpp \
     eulerplot.cpp \
-    anglecorrection.cpp
+    anglecorrection.cpp \
+    opticalflowfunctions.cpp
 
 HEADERS  += mainwindow.h \
-    att_control.h \
     globals.h \
     opticalFlow.h \
-    pid.h \
-    pos_control.h \
     qcustomplot.h \
-    quadcopter.h \
     sensors.h \
     serial_port.h \
     eulerplot.h \
-    anglecorrection.h
+    anglecorrection.h \
+    opticalflowfunctions.h
 
 FORMS    += mainwindow.ui \
     eulerplot.ui \
