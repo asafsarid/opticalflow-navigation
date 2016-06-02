@@ -865,13 +865,11 @@ serial_port.o: serial_port.cpp serial_port.h \
 
 eulerplot.o: eulerplot.cpp eulerplot.h \
 		ui_eulerplot.h \
-		qcustomplot.h \
 		globals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o eulerplot.o eulerplot.cpp
 
 anglecorrection.o: anglecorrection.cpp anglecorrection.h \
 		ui_anglecorrection.h \
-		qcustomplot.h \
 		globals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o anglecorrection.o anglecorrection.cpp
 

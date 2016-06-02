@@ -216,7 +216,10 @@ void *OpticalFlowPerSection(void *currSectionInfo)
 	// 1. cast the input pointer to the desired format
 	sectionInfo *currSection = (sectionInfo *)currSectionInfo;
 	// 2. send to optical flow algorithm
-	calcOpticalFlowFarneback(currSection->prevFrameSection, currSection->frameSection, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
+
+
+
+    calcOpticalFlowFarneback(currSection->prevFrameSection, currSection->frameSection, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
     uflow.copyTo(flow);
 
     float corners[4] = {0.09,0.91,0.09,0.91};
