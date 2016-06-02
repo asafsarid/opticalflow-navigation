@@ -9,6 +9,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <time.h>
+#include <vector>
 // OpenCV
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -34,10 +35,18 @@ int end_run;
 typedef struct{
     UMat frameSection;
     UMat prevFrameSection;
+    vector<Point2f> grid;
     int32_t index;
 }sectionInfo;
 
 /*************************************** Auxiliary functions ******************************/
+/* create custom grid for each section */
+void createGrid(vector<cv::Point2f> &grid, int16_t wRes, int16_t hRes, int step){
+    for (int i= wRes * 0.09; i < wRes * 0.91; i+=step)
+        for (int j= hRes * 0.09; j < wRes * 0.91; j+=step)
+            grid.push_back(cv::Point2f(i,j));
+}
+
 /* this function finds the right location according yaw angle*/
 locationStruct calculateNewLocationByYaw(locationStruct lastFlowStep){
     float yYaw = eulerFromSensors.yaw - M_PI/2;
@@ -215,15 +224,40 @@ void *OpticalFlowPerSection(void *currSectionInfo)
 	UMat uflow;
 	// 1. cast the input pointer to the desired format
 	sectionInfo *currSection = (sectionInfo *)currSectionInfo;
+	vector<Point2f> pyrLKOutput;
+	std::vector<unsigned char> status;
+	std::vector<float> error;
 	// 2. send to optical flow algorithm
 
 
+	cv::calcOpticalFlowPyrLK(
+				currSection->prevFrameSection, currSection->frameSection, // 2 consecutive images
+				currSection->grid, // input point positions in first im
+				pyrLKOutput, // output point positions in the 2nd
+				status,    // tracking success
+				error,      // tracking error
+				Size(21,21),
+				3,
+				TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 5, 0.01)
+	                );
+	int counter = 0;
+	int distPixelx = 0;
+	int distPixely = 0;
+	for(size_t i = 0; i < pyrLKOutput.size(); ++i) {
+		if(!status[i]) {
+		  continue;
+		}
+		const Point2f& currPoint = pyrLKOutput[i];
+		const Point2f& prevPoint = currSection->grid[i];
+//		line(currSection->prevFrameSection, currSection->grid[i], pyrLKOutput[i], Scalar(0, 255, 0));
+//		circle(currSection->prevFrameSection, currSection->grid[i], 2, Scalar(0, 255, 0), -1);
+		distPixelx += currPoint.x - prevPoint.x;
+		distPixely += currPoint.y - prevPoint.y;
+		counter++;
+	}
 
-    calcOpticalFlowFarneback(currSection->prevFrameSection, currSection->frameSection, uflow, 0.5, 3/*def 3 */, 10/* def 15*/, 3, 3, 1.2 /* def 1.2*/, 0);
-    uflow.copyTo(flow);
-
-    float corners[4] = {0.09,0.91,0.09,0.91};
-    calcAvgOpticalFlowPerSection(flow, 16, currSection->index, corners);
+	lastFlowStepSections[currSection->index].x = distPixelx/counter;
+	lastFlowStepSections[currSection->index].y = distPixely/counter;
 
 	return NULL;
 }
@@ -310,24 +344,33 @@ int opticalFlow(int source, MainWindow &w){
 			imshow("flow", prevgray);
 #endif
             // calculate flow per section
+			vector<Point2f> globalGrid;
+			createGrid(globalGrid, WIDTH_RES, HEIGHT_RES, 20);
             sectionInfo topLeft, topRight;
             sectionInfo bottomLeft, bottomRight;
 
             topLeft.frameSection = UMat(gray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
             topLeft.prevFrameSection = UMat(prevgray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
             topLeft.index = 0;
+            topLeft.grid = globalGrid;
 
             topRight.frameSection = UMat(gray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
             topRight.prevFrameSection = UMat(prevgray, Range(0.2*HEIGHT_RES,HEIGHT_RES*0.55), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
             topRight.index = 1;
+            topRight.grid = globalGrid;
 
             bottomLeft.frameSection = UMat(gray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
             bottomLeft.prevFrameSection = UMat(prevgray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(0.2*WIDTH_RES,WIDTH_RES*0.55));
             bottomLeft.index = 2;
+            bottomLeft.grid = globalGrid;
 
             bottomRight.frameSection = UMat(gray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
             bottomRight.prevFrameSection = UMat(prevgray, Range(0.45*HEIGHT_RES,HEIGHT_RES*0.8), Range(WIDTH_RES*0.45, WIDTH_RES*0.8));
             bottomRight.index = 3;
+            bottomRight.grid = globalGrid;
+
+
+
 
             pthread_t topLeft_thread, topRight_thread;
             pthread_t bottomLeft_thread, bottomRight_thread;
