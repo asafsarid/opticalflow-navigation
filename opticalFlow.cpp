@@ -160,7 +160,6 @@ int opticalFlow(int source, MainWindow &w){
                 predLocation.y = ((eulerFromSensors.roll-prevEulerFromSensors.roll)*(180/PI)*HEIGHT_RES) / 36;
 
                 cout << "Sonar with factor: " << distanceSonar << endl;
-                cout << "Pitch: " << eulerFromSensors.pitch << endl;
 
                 // calculate final x, y location (apply prediction)
                 locationStruct locationCorrectionAfterYaw;

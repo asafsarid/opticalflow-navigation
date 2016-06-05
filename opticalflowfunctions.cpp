@@ -89,8 +89,8 @@ void *OpticalFlowPerSection(void *currSectionInfo)
                     );
 
     int counter = 0;
-    int distPixelx = 0;
-    int distPixely = 0;
+    float distPixelx = 0;
+    float distPixely = 0;
 
     //get delta x,y for every point in grid
     for(size_t i = 0; i < pyrLKOutput.size(); ++i) {
@@ -108,8 +108,8 @@ void *OpticalFlowPerSection(void *currSectionInfo)
 
     // average
     if (counter != 0){
-        lastFlowStepSections[currSection->index].x = distPixelx/counter;
-        lastFlowStepSections[currSection->index].y = distPixely/counter;
+        lastFlowStepSections[currSection->index].x = distPixelx/((float)counter);
+        lastFlowStepSections[currSection->index].y = distPixely/((float)counter);
     }
     else {
         lastFlowStepSections[currSection->index].x = 0;
